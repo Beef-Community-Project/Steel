@@ -1,0 +1,3 @@
+[submodule "Libs\\GLFW"]
+	path = Libs\\GLFW
+	url = https://github.com/MineGame159/glfw-beef
