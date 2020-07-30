@@ -1,5 +1,5 @@
 FileVersion = 1
-Projects = {Engine = {Path = "Engine"}, Editor = {Path = "Editor"}}
+Projects = {Engine = {Path = "Engine"}, Editor = {Path = "Editor"}, glfw-beef = {Path = "Libs/GLFW"}}
 
 [Configs.Test.Win32]
 ConfigSelections = {corlib = {Config = "Debug"}}
