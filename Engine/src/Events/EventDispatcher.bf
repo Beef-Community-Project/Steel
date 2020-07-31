@@ -4,18 +4,18 @@ namespace SteelEngine.Events
 	{
 		typealias EventFn<T> = delegate bool(T);
 
-		private Event mEvent;
+		private Event _event;
 
 		public this(Event event)
 		{
-			mEvent = event;
+			_event = event;
 		}
 
 		public bool Dispatch<T>(EventFn<T> func) where T : Event
 		{
-			if (typeof(T) == mEvent.GetType())
+			if (typeof(T) == _event.GetType())
 			{
-				mEvent.IsHandled = func.Invoke((T) mEvent);
+				_event.IsHandled = func.Invoke((T) _event);
 				return true;
 			}
 

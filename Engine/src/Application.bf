@@ -14,10 +14,6 @@ namespace SteelEngine
 		public this()
 		{
 			OnInit();
-
-			var windowConfig = WindowConfig(1080, 720, "SteelEngine");
-
-			_window = new Window(windowConfig, _eventCallback);
 		}
 
 		public ~this()
@@ -29,6 +25,9 @@ namespace SteelEngine
 		{
 			_isRunning = true;
 
+			var windowConfig = WindowConfig(1080, 720, "SteelEngine");
+			_window = new Window(windowConfig, _eventCallback);
+
 			while (_isRunning)
 			{
 				_window.Update();
@@ -36,7 +35,10 @@ namespace SteelEngine
 		}
 
 		// Gets called right before the window is created
-		public virtual void OnInit() {}
+		public virtual void OnInit()
+		{
+			Log.AddHandle(Console.Out);
+		}
 
 		// Gets called when the window is destroyed
 		public virtual void OnCleanup()
