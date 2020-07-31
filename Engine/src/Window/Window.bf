@@ -1,10 +1,10 @@
 using System;
 using glfw_beef;
 
-using Engine.Events;
-using Engine.GL;
+using SteelEngine.Events;
+using SteelEngine.GL;
 
-namespace Engine.Window
+namespace SteelEngine.Window
 {
 	// NOTE(Sheep): temporary vector struct
 	struct Vector2<T>
@@ -31,7 +31,7 @@ namespace Engine.Window
 			bool undecorated = false, bool resizable = false, bool vsync = false, bool max = false, bool inv = false)
 		{
 			this.Title = title; this.Width = width; this.Height = height;
-			this.Undecorated = undecorated; this.Resizable = resizable; this.VSync= vsync;
+			this.Undecorated = undecorated; this.Resizable = resizable; this.VSync = vsync;
 			this.Maximized = max; this.Invisible = inv;
 		}
 	}

@@ -1,6 +1,6 @@
 using System;
 
-namespace Engine.Events
+namespace SteelEngine.Events
 {
 	public abstract class KeyEvent : Event
 	{

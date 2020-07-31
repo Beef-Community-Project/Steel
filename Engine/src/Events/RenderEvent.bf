@@ -1,4 +1,4 @@
-namespace Engine.Events
+namespace SteelEngine.Events
 {
 	public class RenderEvent : Event
 	{
