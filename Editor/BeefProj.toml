@@ -1,6 +1,6 @@
 FileVersion = 1
-Dependencies = {corlib = "*", glfw-beef = "*"}
+Dependencies = {corlib = "*", glfw-beef = "*", SteelEngine = "*"}
 
 [Project]
-Name = "Editor"
-StartupObject = "Program"
+Name = "SteelEditor"
+StartupObject = "SteelEditor.Program"

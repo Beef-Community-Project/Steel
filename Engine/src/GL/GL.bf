@@ -1,6 +1,6 @@
 using System;
 
-namespace Engine.GL {
+namespace SteelEngine.GL {
     class GL {
         public function void* GetProcAddressFunc(StringView procname);
 

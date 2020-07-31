@@ -1,7 +1,5 @@
 FileVersion = 1
-Dependencies = {corlib = "*", glfw-beef = "*"}
+Dependencies = {corlib = "*", glfw-beef = "*", corlib = "*"}
 
 [Project]
-Name = "Engine"
-TargetType = "BeefLib"
-StartupObject = "Program"
+Name = "SteelEngine"
