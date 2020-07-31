@@ -1,0 +1,5 @@
+FileVersion = 1
+Projects = {BasicSteelGame = {Path = "."}, SteelEngine = {Path = "../../Engine"}, glfw-beef = {Path = "../../Libs/GLFW"}}
+
+[Workspace]
+StartupProject = "BasicSteelGame"

@@ -1,37 +1,15 @@
+using System;
 using SteelEngine.Window;
 using SteelEngine.Events;
 
 namespace SteelEngine
 {
-	/*
-	Usage:
-
-	class Sandbox : Application
+	public abstract class Application : IDisposable
 	{
-		public override void OnInit()
-		{
-			base.OnInit();
-		}
-	
-		public override void OnCleanup()
-		{
-			base.OnCleanup();
-		}	
-	}
+		private bool _isRunning = false;
 
-	static void Main()
-	{
-		var app = scope Sandbox();
-		app.Run();
-	}
-
-	*/
-	public abstract class Application
-	{
-		private bool mIsRunning = false;
-
-		private Window mWindow ~ delete _;
-		private Window.EventCallback EventCallback = new => OnEvent ~ delete _;
+		private Window _window ~ delete _;
+		private Window.EventCallback _eventCallback = new => OnEvent ~ delete _;
 
 		public this()
 		{
@@ -39,16 +17,21 @@ namespace SteelEngine
 
 			var windowConfig = WindowConfig(1080, 720, "SteelEngine");
 
-			mWindow = new Window(windowConfig, EventCallback);
+			_window = new Window(windowConfig, _eventCallback);
+		}
+
+		public ~this()
+		{
+			Dispose();
 		}
 
 		public void Run()
 		{
-			mIsRunning = true;
+			_isRunning = true;
 
-			while (mIsRunning)
+			while (_isRunning)
 			{
-				mWindow.Update();
+				_window.Update();
 			}
 		}
 
@@ -58,7 +41,7 @@ namespace SteelEngine
 		// Gets called when the window is destroyed
 		public virtual void OnCleanup()
 		{
-			mWindow.Destroy();
+			_window.Destroy();
 		}
 
 		// Gets called when an event occurs in the window
@@ -68,12 +51,15 @@ namespace SteelEngine
 			dispatcher.Dispatch<WindowCloseEvent>(scope => OnWindowClose);
 		}
 
-		bool OnWindowClose(WindowCloseEvent event)
+		private bool OnWindowClose(WindowCloseEvent event)
 		{
-			mIsRunning = false;
-			OnCleanup();
-
+			_isRunning = false;
 			return true;
+		}
+
+		public void Dispose()
+		{
+			OnCleanup();
 		}
 	}
 }
