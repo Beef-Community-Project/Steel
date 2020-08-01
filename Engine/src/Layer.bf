@@ -5,11 +5,11 @@ namespace SteelEngine
 {
 	public class Layer
 	{
-		protected String mDebugName ~ delete _;
+		protected String _debugName ~ delete _;
 
 		public this(StringView name = "Layer")
 		{
-			mDebugName = new String(name);
+			_debugName = new String(name);
 		}
 
 		public virtual void OnAttach() {};

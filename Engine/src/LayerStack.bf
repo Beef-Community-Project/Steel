@@ -4,28 +4,28 @@ namespace SteelEngine
 {
 	public class LayerStack
 	{
-		private List<Layer> mLayers = new .() ~ DeleteContainerAndItems!(_);
-		private int mLayerInsert = 0;
+		private List<Layer> _layers = new .() ~ DeleteContainerAndItems!(_);
+		private int _layerInsert = 0;
 
 		public void PushLayer(Layer layer)
 		{
-			mLayers.Insert(mLayerInsert++, layer);
+			_layers.Insert(_layerInsert++, layer);
 		}
 
 		public void PushOverlay(Layer overlay)
 		{
-			mLayers.Add(overlay);
+			_layers.Add(overlay);
 		}
 
 		public void PopLayer(Layer layer)
 		{
-			mLayers.Remove(layer);
-			mLayerInsert--;
+			_layers.Remove(layer);
+			_layerInsert--;
 		}
 
 		public void PopOverlay(Layer overlay)
 		{
-			mLayers.Remove(overlay);
+			_layers.Remove(overlay);
 		}
 	}
 }
