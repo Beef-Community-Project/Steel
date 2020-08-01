@@ -144,7 +144,7 @@ namespace SteelEngine.Input
 		public static KeyCode MapKeyboardKey(GlfwInput.Key key)
 		{
 			KeyCode kc;
-			if(_keyCodeMap.TryGetValue(key, out kc))
+			if (_keyCodeMap.TryGetValue(key, out kc))
 			{
 				return kc;
 			}
@@ -154,22 +154,18 @@ namespace SteelEngine.Input
 
 		public static KeyCode MapMouseButton(GlfwInput.MouseButton button)
 		{
-			switch(button)
+			switch (button)
 			{
-			case .Button1: return .Mouse0;
-			case .Button2: return .Mouse1;
-			case .Button3: return .Mouse2;
-			case .Button4: return .Mouse3;
-			case .Button5: return .Mouse4;
-			case .Button6: return .Mouse5;
-			case .Button7: return .Mouse6;
-
-
-			//case .Button8: return .None;
-			default: return .None;
+				case .Button1: return .Mouse0;
+				case .Button2: return .Mouse1;
+				case .Button3: return .Mouse2;
+				case .Button4: return .Mouse3;
+				case .Button5: return .Mouse4;
+				case .Button6: return .Mouse5;
+				case .Button7: return .Mouse6;
+	
+				case .Button8: return .None; 	// @TODO
 			}
-
-			return .None;
 		}
 	}
 }

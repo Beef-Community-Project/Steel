@@ -58,7 +58,7 @@ namespace SteelEngine
 			dispatcher.Dispatch<MouseButtonPressedEvent>(scope => OnMouseButtonPressed);
 			dispatcher.Dispatch<MouseButtonReleasedEvent>(scope => OnMouseButtonReleased);
 
-			if(event.EventType == .WindowLostFocus)
+			if (event.EventType == .WindowLostFocus)
 			{
 				Input.ResetInput();
 			}

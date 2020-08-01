@@ -20,17 +20,17 @@ namespace SteelEngine.Input
 
 		static void Update()
 		{
-			for(int i = 0, let count = _accumulatedEvents.Count; i < count; i++)
+			for (int i = 0, let count = _accumulatedEvents.Count; i < count; i++)
 			{
 				let event = _accumulatedEvents[i];
 
 				_lastUpdateState[i] &= ~(.Down | .Up);	// Clear up / down
-				if(event.HasFlag(.Down))
+				if (event.HasFlag(.Down))
 				{
 					_lastUpdateState[i] = .Down | .Hold;
 				}
 
-				if(event.HasFlag(.Up))
+				if (event.HasFlag(.Up))
 				{
 					_lastUpdateState[i] = ( _lastUpdateState[i] & ~.Hold) | .Up;		// If key was pressed and released we probably want to unset the Hold flag but keep down flag.
 				}
