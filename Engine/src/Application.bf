@@ -72,26 +72,26 @@ namespace SteelEngine
 
 		private bool OnKeyPressed(KeyPressedEvent event)
 		{
-			Input.[Friend]KeyEvent(GLFWKeyMapper.MapKeyboardKey(event.KeyCode), .Down);
+			Input.[Friend]KeyEvent(GLFWKeyMapper.MapKeyboardKey((.)event.KeyCode), .Down);
 			return true;
 		}
 
 		private bool OnKeyRelease(KeyReleasedEvent event)
 		{
-			Input.[Friend]KeyEvent(GLFWKeyMapper.MapKeyboardKey(event.KeyCode), .Up);
+			Input.[Friend]KeyEvent(GLFWKeyMapper.MapKeyboardKey((.)event.KeyCode), .Up);
 			return true;
 		}
 
 		private bool OnMouseButtonPressed(MouseButtonPressedEvent event)
 		{
 			
-			Input.[Friend]KeyEvent(GLFWKeyMapper.MapMouseButton(event.Button), .Down);
+			Input.[Friend]KeyEvent(GLFWKeyMapper.MapMouseButton((.)event.Button), .Down);
 			return true;
 		}
 
 		private bool OnMouseButtonReleased(MouseButtonReleasedEvent event)
 		{
-			Input.[Friend]KeyEvent(GLFWKeyMapper.MapMouseButton(event.Button), .Up);
+			Input.[Friend]KeyEvent(GLFWKeyMapper.MapMouseButton((.)event.Button), .Up);
 			return true;
 		}
 

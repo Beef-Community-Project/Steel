@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using glfw_beef;
 
 namespace SteelEngine.Input
 {
@@ -126,142 +127,142 @@ namespace SteelEngine.Input
 		const int GLFW_KEY_RIGHT_SUPER = 347;
 		const int GLFW_KEY_MENU = 348;
 
-		static Dictionary<int, KeyCode> _keyCodeMap = new Dictionary<int, KeyCode>()
+		static Dictionary<GlfwInput.Key, KeyCode> _keyCodeMap = new Dictionary<GlfwInput.Key, KeyCode>()
 		{
-			(GLFW_KEY_SPACE, KeyCode.Space),	// KeyCode needs to be here otherwise compiler can't infer the type.
-			(GLFW_KEY_APOSTROPHE, .Quote),		
-			(GLFW_KEY_COMMA, .Comma),
-			(GLFW_KEY_MINUS, .Minus),
-			(GLFW_KEY_PERIOD, .Period),
-			(GLFW_KEY_SLASH, .Slash),
+			(GlfwInput.Key.Space, KeyCode.Space),	// KeyCode needs to be here otherwise compiler can't infer the type.
+			(.Apostrophe, .Quote),		
+			(.Comma, .Comma),
+			(.Minus, .Minus),
+			(.Period, .Period),
+			(.Slash, .Slash),
 
-			(GLFW_KEY_0, .Alpha0),
-			(GLFW_KEY_1, .Alpha1),
-			(GLFW_KEY_2, .Alpha2),
-			(GLFW_KEY_3, .Alpha3),
-			(GLFW_KEY_4, .Alpha4),
-			(GLFW_KEY_5, .Alpha5),
-			(GLFW_KEY_6, .Alpha6),
-			(GLFW_KEY_7, .Alpha7),
-			(GLFW_KEY_8, .Alpha8),
-			(GLFW_KEY_9, .Alpha9),
+			(.Num0, .Alpha0),
+			(.Num1, .Alpha1),
+			(.Num1, .Alpha2),
+			(.Num1, .Alpha3),
+			(.Num1, .Alpha4),
+			(.Num1, .Alpha5),
+			(.Num1, .Alpha6),
+			(.Num1, .Alpha7),
+			(.Num1, .Alpha8),
+			(.Num1, .Alpha9),
 
-			(GLFW_KEY_SEMICOLON, .Semicolon),
-			(GLFW_KEY_EQUAL, .Equals),
+			(.Smicolon, .Semicolon),
+			(.Equal, .Equals),
 
-			(GLFW_KEY_A, .A),
-			(GLFW_KEY_B, .B),
-			(GLFW_KEY_C, .C),
-			(GLFW_KEY_D, .D),
-			(GLFW_KEY_E, .E),
-			(GLFW_KEY_F, .F),
-			(GLFW_KEY_G, .G),
-			(GLFW_KEY_H, .H),
-			(GLFW_KEY_I, .I),
-			(GLFW_KEY_J, .J),
-			(GLFW_KEY_K, .K),
-			(GLFW_KEY_L, .L),
-			(GLFW_KEY_M, .M),
-			(GLFW_KEY_N, .N),
-			(GLFW_KEY_O, .O),
-			(GLFW_KEY_P, .P),
-			(GLFW_KEY_Q, .Q),
-			(GLFW_KEY_R, .R),
-			(GLFW_KEY_S, .S),
-			(GLFW_KEY_T, .T),
-			(GLFW_KEY_U, .U),
-			(GLFW_KEY_V, .V),
-			(GLFW_KEY_W, .W),
-			(GLFW_KEY_X, .X),
-			(GLFW_KEY_Y, .Y),
-			(GLFW_KEY_Z, .Z),
+			(.A, .A),
+			(.B, .B),
+			(.C, .C),
+			(.D, .D),
+			(.E, .E),
+			(.F, .F),
+			(.G, .G),
+			(.H, .H),
+			(.I, .I),
+			(.J, .J),
+			(.K, .K),
+			(.L, .L),
+			(.M, .M),
+			(.N, .N),
+			(.O, .O),
+			(.P, .P),
+			(.Q, .Q),
+			(.R, .R),
+			(.S, .S),
+			(.T, .T),
+			(.U, .U),
+			(.V, .V),
+			(.W, .W),
+			(.X, .X),
+			(.Y, .Y),
+			(.Z, .Z),
 
-			(GLFW_KEY_LEFT_BRACKET, .LeftBracket),
-			(GLFW_KEY_BACKSLASH, .Backslash),
-			(GLFW_KEY_RIGHT_BRACKET, .RightBracket),
+			(.LeftBracket, .LeftBracket),
+			(.Backslash, .Backslash),
+			(.RightBracket, .RightBracket),
 
-			(GLFW_KEY_GRAVE_ACCENT, .BackQuote),		
-			(GLFW_KEY_WORLD_1, .World1),				
-			(GLFW_KEY_WORLD_2, .None),					// @TODO
+			(.GraveAccent, .BackQuote),		
+			(.World1, .World1),				
+			(.World2, .None),					// @TODO
 
-			(GLFW_KEY_ESCAPE, .Escape),
-			(GLFW_KEY_ENTER, .Return),
-			(GLFW_KEY_TAB, .Tab),
-			(GLFW_KEY_BACKSPACE, .Backspace),
-			(GLFW_KEY_INSERT, .Insert),
-			(GLFW_KEY_DELETE, .Delete),
+			(.Escape, .Escape),
+			(.Enter, .Return),
+			(.Tab, .Tab),
+			(.Backspace, .Backspace),
+			(.Insert, .Insert),
+			(.Delete, .Delete),
 
-			(GLFW_KEY_RIGHT, .RightArrow),
-			(GLFW_KEY_LEFT, .LeftArrow),
-			(GLFW_KEY_DOWN, .DownArrow),
-			(GLFW_KEY_UP, .UpArrow),
+			(.Right, .RightArrow),
+			(.Left, .LeftArrow),
+			(.Down, .DownArrow),
+			(.Up, .UpArrow),
 
-			(GLFW_KEY_PAGE_UP, .PageUp),
-			(GLFW_KEY_PAGE_DOWN, .PageDown),
-			(GLFW_KEY_HOME, .Home),
-			(GLFW_KEY_END, .End),
-			(GLFW_KEY_CAPS_LOCK, .CapsLock),
-			(GLFW_KEY_SCROLL_LOCK, .ScrollLock),
-			(GLFW_KEY_NUM_LOCK, .NumLock),
-			(GLFW_KEY_PRINT_SCREEN, .Print),
-			(GLFW_KEY_PAUSE, .Pause),
+			(.PageUp, .PageUp),
+			(.PageDown, .PageDown),
+			(.Home, .Home),
+			(.End, .End),
+			(.CapsLock, .CapsLock),
+			(.ScrollLock, .ScrollLock),
+			(.NumLock, .NumLock),
+			(.PrintScreen, .Print),
+			(.Pause, .Pause),
 
-			(GLFW_KEY_F1, .F1),
-			(GLFW_KEY_F2, .F2),
-			(GLFW_KEY_F3, .F3),
-			(GLFW_KEY_F4, .F4),
-			(GLFW_KEY_F5, .F5),
-			(GLFW_KEY_F6, .F6),
-			(GLFW_KEY_F7, .F7),
-			(GLFW_KEY_F8, .F8),
-			(GLFW_KEY_F9, .F9),
-			(GLFW_KEY_F10, .F10),
-			(GLFW_KEY_F11, .F11),
-			(GLFW_KEY_F12, .F12),
-			(GLFW_KEY_F13, .F13),
-			(GLFW_KEY_F14, .F14),
-			(GLFW_KEY_F15, .F15),
-			(GLFW_KEY_F16, .F16),
-			(GLFW_KEY_F17, .F17),
-			(GLFW_KEY_F18, .F18),
-			(GLFW_KEY_F19, .F19),
-			(GLFW_KEY_F20, .F20),
-			(GLFW_KEY_F21, .F21),
-			(GLFW_KEY_F22, .F22),
-			(GLFW_KEY_F23, .F23),
-			(GLFW_KEY_F24, .F24),
-			//	(GLFW_KEY_F25, .F25),	// @TODO - add F25?
+			(.F1, .F1),
+			(.F2, .F2),
+			(.F3, .F3),
+			(.F4, .F4),
+			(.F5, .F5),
+			(.F6, .F6),
+			(.F7, .F7),
+			(.F8, .F8),
+			(.F9, .F9),
+			(.F10, .F10),
+			(.F11, .F11),
+			(.F12, .F12),
+			(.F13, .F13),
+			(.F14, .F14),
+			(.F15, .F15),
+			(.F16, .F16),
+			(.F17, .F17),
+			(.F18, .F18),
+			(.F19, .F19),
+			(.F20, .F20),
+			(.F21, .F21),
+			(.F22, .F22),
+			(.F23, .F23),
+			(.F24, .F24),
+			//(.F25, .F25),		// @TODO - add F25?
 
-			(GLFW_KEY_KP_0, .Keypad0),
-			(GLFW_KEY_KP_1, .Keypad1),
-			(GLFW_KEY_KP_2, .Keypad2),
-			(GLFW_KEY_KP_3, .Keypad3),
-			(GLFW_KEY_KP_4, .Keypad4),
-			(GLFW_KEY_KP_5, .Keypad5),
-			(GLFW_KEY_KP_6, .Keypad6),
-			(GLFW_KEY_KP_7, .Keypad7),
-			(GLFW_KEY_KP_8, .Keypad8),
-			(GLFW_KEY_KP_9, .Keypad9),
-			(GLFW_KEY_KP_DECIMAL, .KeypadPeriod),
-			(GLFW_KEY_KP_DIVIDE, .KeypadDivide),
-			(GLFW_KEY_KP_MULTIPLY, .KeypadMultiply),
-			(GLFW_KEY_KP_SUBTRACT, .KeypadMinus),
-			(GLFW_KEY_KP_ADD, .KeypadPlus),
-			(GLFW_KEY_KP_ENTER, .KeypadEnter),
-			(GLFW_KEY_KP_EQUAL, .KeypadEquals),
+			(.Kp0, .Keypad0),
+			(.Kp1, .Keypad1),
+			(.Kp2, .Keypad2),
+			(.Kp3, .Keypad3),
+			(.Kp4, .Keypad4),
+			(.Kp5, .Keypad5),
+			(.Kp6, .Keypad6),
+			(.Kp7, .Keypad7),
+			(.Kp8, .Keypad8),
+			(.Kp9, .Keypad9),
+			(.KpDecimal, .KeypadPeriod),
+			(.KpDivide, .KeypadDivide),
+			(.KpMultiply, .KeypadMultiply),
+			(.KpSubtract, .KeypadMinus),
+			(.KpAdd, .KeypadPlus),
+			(.KpEnter, .KeypadEnter),
+			(.KpEqual, .KeypadEquals),
 
-			(GLFW_KEY_LEFT_SHIFT, .LeftShift),
-			(GLFW_KEY_LEFT_CONTROL, .LeftControl),
-			(GLFW_KEY_LEFT_ALT, .LeftAlt),
-			(GLFW_KEY_LEFT_SUPER, .LeftWindows),	// @TODO - its platform dependant
-			(GLFW_KEY_RIGHT_SHIFT, .RightShift),
-			(GLFW_KEY_RIGHT_CONTROL, .RightControl),
-			(GLFW_KEY_RIGHT_ALT, .RightAlt),
-			(GLFW_KEY_RIGHT_SUPER, .LeftWindows),	// @TODO
-			(GLFW_KEY_MENU, .Menu),
+			(.LeftShift, .LeftShift),
+			(.LeftControl, .LeftControl),
+			(.LeftAlt, .LeftAlt),
+			(.LeftSuper, .LeftWindows),	// @TODO - its platform dependant
+			(.RightShift, .RightShift),
+			(.RightControl, .RightControl),
+			(.RightAlt, .RightAlt),
+			(.RightSuper, .LeftWindows),	// @TODO
+			(.Menu, .Menu),
 		} ~ delete _;
 
-		public static KeyCode MapKeyboardKey(int key)
+		public static KeyCode MapKeyboardKey(GlfwInput.Key key)
 		{
 			KeyCode kc;
 			if(_keyCodeMap.TryGetValue(key, out kc))
@@ -272,17 +273,21 @@ namespace SteelEngine.Input
 			return .None;
 		}
 
-		public static KeyCode MapMouseButton(int button)
+		public static KeyCode MapMouseButton(GlfwInput.MouseButton button)
 		{
 			switch(button)
 			{
-			case 0: return .Mouse0;
-			case 1: return .Mouse1;
-			case 2: return .Mouse2;
-			case 3: return .Mouse3;
-			case 4: return .Mouse4;
-			case 5: return .Mouse5;
-			case 6: return .Mouse6;
+			case .Button1: return .Mouse0;
+			case .Button2: return .Mouse1;
+			case .Button3: return .Mouse2;
+			case .Button4: return .Mouse3;
+			case .Button5: return .Mouse4;
+			case .Button6: return .Mouse5;
+			case .Button7: return .Mouse6;
+
+
+			//case .Button8: return .None;
+			default: return .None;
 			}
 
 			return .None;
