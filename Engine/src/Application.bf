@@ -1,6 +1,7 @@
 using System;
 using SteelEngine.Window;
 using SteelEngine.Events;
+using SteelEngine.Input;
 
 namespace SteelEngine
 {
@@ -30,6 +31,7 @@ namespace SteelEngine
 
 			while (_isRunning)
 			{
+				Input.[Friend]Update();
 				_window.Update();
 			}
 		}
@@ -51,11 +53,45 @@ namespace SteelEngine
 		{
 			var dispatcher = scope EventDispatcher(event);
 			dispatcher.Dispatch<WindowCloseEvent>(scope => OnWindowClose);
+			dispatcher.Dispatch<KeyPressedEvent>(scope => OnKeyPressed);
+			dispatcher.Dispatch<KeyReleasedEvent>(scope => OnKeyRelease);
+			dispatcher.Dispatch<MouseButtonPressedEvent>(scope => OnMouseButtonPressed);
+			dispatcher.Dispatch<MouseButtonReleasedEvent>(scope => OnMouseButtonReleased);
+
+			if(event.EventType == .WindowLostFocus)
+			{
+				Input.ResetInput();
+			}
 		}
 
 		private bool OnWindowClose(WindowCloseEvent event)
 		{
 			_isRunning = false;
+			return true;
+		}
+
+		private bool OnKeyPressed(KeyPressedEvent event)
+		{
+			Input.[Friend]KeyEvent(GLFWKeyMapper.MapKeyboardKey(event.KeyCode), .Down);
+			return true;
+		}
+
+		private bool OnKeyRelease(KeyReleasedEvent event)
+		{
+			Input.[Friend]KeyEvent(GLFWKeyMapper.MapKeyboardKey(event.KeyCode), .Up);
+			return true;
+		}
+
+		private bool OnMouseButtonPressed(MouseButtonPressedEvent event)
+		{
+			
+			Input.[Friend]KeyEvent(GLFWKeyMapper.MapMouseButton(event.Button), .Down);
+			return true;
+		}
+
+		private bool OnMouseButtonReleased(MouseButtonReleasedEvent event)
+		{
+			Input.[Friend]KeyEvent(GLFWKeyMapper.MapMouseButton(event.Button), .Up);
 			return true;
 		}
 
