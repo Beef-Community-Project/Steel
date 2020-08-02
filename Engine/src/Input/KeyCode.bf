@@ -116,11 +116,9 @@ namespace SteelEngine.Input
 		RightAlt,
 		LeftAlt,
 		LeftCommand,
-		LeftApple,
-		LeftWindows,
+		LeftSuper,
 		RightCommand,
-		RightApple,
-		RightWindows,
+		RightSuper,
 		AltGr,
 		Help,
 		Print,
@@ -135,6 +133,7 @@ namespace SteelEngine.Input
 		Mouse4,
 		Mouse5,
 		Mouse6,
+		Mouse7,
 
 		// Gamepad
 		GamepadA,
@@ -154,8 +153,8 @@ namespace SteelEngine.Input
 		GamepadR1,
 		GamepadR2,
 		GamepadR3,
-		ThumbstickLeft,
-		ThumbstickRight,
+		GamepadLeftStick,
+		GamepadRightStick,
 
 		MAX
 	}	

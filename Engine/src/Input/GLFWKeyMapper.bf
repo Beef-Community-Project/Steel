@@ -110,7 +110,6 @@ namespace SteelEngine.Input
 			(.F22, .F22),
 			(.F23, .F23),
 			(.F24, .F24),
-			//(.F25, .F25),		// @TODO - add F25?
 
 			(.Kp0, .Keypad0),
 			(.Kp1, .Keypad1),
@@ -133,11 +132,11 @@ namespace SteelEngine.Input
 			(.LeftShift, .LeftShift),
 			(.LeftControl, .LeftControl),
 			(.LeftAlt, .LeftAlt),
-			(.LeftSuper, .LeftWindows),	// @TODO - its platform dependant
+			(.LeftSuper, .LeftSuper),	// @TODO - its platform dependent
 			(.RightShift, .RightShift),
 			(.RightControl, .RightControl),
 			(.RightAlt, .RightAlt),
-			(.RightSuper, .LeftWindows),	// @TODO
+			(.RightSuper, .RightSuper),	// @TODO
 			(.Menu, .Menu),
 		} ~ delete _;
 
@@ -163,8 +162,31 @@ namespace SteelEngine.Input
 				case .Button5: return .Mouse4;
 				case .Button6: return .Mouse5;
 				case .Button7: return .Mouse6;
-	
-				case .Button8: return .None; 	// @TODO
+				case .Button8: return .Mouse7;
+				default: return .None;
+			}
+		}
+
+		public static KeyCode MapGamepadButton(GlfwInput.GamepadButton button)
+		{
+			switch (button)
+			{
+				case .A: return .GamepadA;
+				case .B: return .GamepadB;
+				case .X: return .GamepadX;
+				case .Y: return .GamepadY;
+				case .DPadLeft: return .GamepadLeft;
+				case .DPadRight: return .GamepadRight;
+				case .DPadUp: return .GamepadUp;
+				case .DPadDown: return .GamepadDown;
+				case .LeftThumb: return .GamepadLeftStick;
+				case .RightThumb: return .GamepadRightStick;
+				case .Start: return .GamepadStart;
+				case .Guide: return .GamepadHome;
+				case .Back: return .GamepadSelect;
+				case .LeftBumper: return .GamepadL1;
+				case .RightBumper: return .GamepadR1;
+				default: return .None;
 			}
 		}
 	}
