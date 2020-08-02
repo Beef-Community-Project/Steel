@@ -11,8 +11,12 @@ namespace SteelEngine
 		private Window _window ~ delete _;
 		private Window.EventCallback _eventCallback = new => OnEvent ~ delete _;
 
+		private LayerStack _layerStack;
+
 		public this()
 		{
+			_layerStack = new LayerStack();
+
 			OnInit();
 		}
 
@@ -30,6 +34,9 @@ namespace SteelEngine
 
 			while (_isRunning)
 			{
+				for (var layer in _layerStack)
+					layer.OnUpdate();
+
 				_window.Update();
 			}
 		}
@@ -51,6 +58,13 @@ namespace SteelEngine
 		{
 			var dispatcher = scope EventDispatcher(event);
 			dispatcher.Dispatch<WindowCloseEvent>(scope => OnWindowClose);
+
+			for (var layer in _layerStack)
+			{
+				layer.OnEvent(event);
+				if (event.IsHandled)
+					break;
+			}
 		}
 
 		private bool OnWindowClose(WindowCloseEvent event)
