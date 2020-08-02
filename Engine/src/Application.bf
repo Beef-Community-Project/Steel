@@ -11,12 +11,10 @@ namespace SteelEngine
 		private Window _window ~ delete _;
 		private Window.EventCallback _eventCallback = new => OnEvent ~ delete _;
 
-		private LayerStack _layerStack;
+		private LayerStack _layerStack = new .() ~ delete _;
 
 		public this()
 		{
-			_layerStack = new LayerStack();
-
 			OnInit();
 		}
 
