@@ -61,8 +61,8 @@ namespace SteelEngine.Input
 			(.RightBracket, .RightBracket),
 
 			(.GraveAccent, .BackQuote),		
-			(.World1, .World1),				
-			(.World2, .None),					// @TODO
+			(.World1, .Clear),				
+			(.World2, .Pipe),					// @TODO
 
 			(.Escape, .Escape),
 			(.Enter, .Return),
@@ -132,13 +132,30 @@ namespace SteelEngine.Input
 			(.LeftShift, .LeftShift),
 			(.LeftControl, .LeftControl),
 			(.LeftAlt, .LeftAlt),
-			(.LeftSuper, .LeftSuper),	// @TODO - its platform dependent
+			(.LeftSuper, .LeftSuper),
 			(.RightShift, .RightShift),
 			(.RightControl, .RightControl),
 			(.RightAlt, .RightAlt),
-			(.RightSuper, .RightSuper),	// @TODO
+			(.RightSuper, .RightSuper),
 			(.Menu, .Menu),
 		} ~ delete _;
+
+		public static void PrintUnusedKeyCodes()
+		{
+			HashSet<KeyCode> keyCodes = scope .();
+			for (let v in _keyCodeMap.Values)
+			{
+				keyCodes.Add(v);
+			}
+			Log.Info("Unused KeyCodes:");
+			for (var i = KeyCode.None; i < KeyCode.Menu + 1; i++)
+			{
+				if (!keyCodes.Contains(i))
+				{
+					Log.Info("{0}", i);
+				}
+			}
+		}	
 
 		public static KeyCode MapKeyboardKey(GlfwInput.Key key)
 		{

@@ -12,7 +12,7 @@ namespace SteelEngine.Input
 		const int NUMBER_OF_AXIS = int(AxisCodeEnd-AxisCodeStart);
 
 		KeyEvent[NUMBER_OF_KEYS] _accumulatedKeyEvents;
-		KeyStatus[NUMBER_OF_KEYS] _keyStates;
+		KeyState[NUMBER_OF_KEYS] _keyStates;
 		float[NUMBER_OF_AXIS] _axisValues;
 
 		String _gamepadName ~ delete _;
@@ -48,43 +48,38 @@ namespace SteelEngine.Input
 
 		public void ResetInput()
 		{
+			_accumulatedKeyEvents = default;
 			_keyStates = default;
 			_axisValues = default;
 		}
 
 		public float GetAxis(GamepadAxisCode ac)
 		{
-			System.Diagnostics.Debug.Assert(ac >= AxisCodeStart && ac < AxisCodeEnd);
 			return _axisValues[(ac - AxisCodeStart).Underlying];
 		}
 
 		public bool GetKeyDown(KeyCode kc)
 		{
-			System.Diagnostics.Debug.Assert(kc >= KeyCodeStart && kc < KeyCodeEnd);
 			return _keyStates[(kc - KeyCodeStart).Underlying].HasFlag(.Down);
 		}
 
 		public bool GetKeyUp(KeyCode kc)
 		{
-			System.Diagnostics.Debug.Assert(kc >= KeyCodeStart && kc < KeyCodeEnd);
 			return _keyStates[(kc - KeyCodeStart).Underlying].HasFlag(.Up);
 		}
 
 		public bool GetKey(KeyCode kc)
 		{
-			System.Diagnostics.Debug.Assert(kc >= KeyCodeStart && kc < KeyCodeEnd);
 			return _keyStates[(kc - KeyCodeStart).Underlying].HasFlag(.Hold);
 		}
 
 		void SetKey(KeyCode kc, KeyEvent ke)
 		{
-			System.Diagnostics.Debug.Assert(kc >= KeyCodeStart && kc < KeyCodeEnd);
 			_accumulatedKeyEvents[(kc - KeyCodeStart).Underlying] = ke;
 		}
 
 		void SetAxis(GamepadAxisCode ac, float value)
 		{
-			System.Diagnostics.Debug.Assert(ac >= AxisCodeStart && ac <= AxisCodeEnd);
 			_axisValues[(int)(ac - AxisCodeStart)] = value;
 		}
 

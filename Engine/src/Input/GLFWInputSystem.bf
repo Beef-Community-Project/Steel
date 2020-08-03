@@ -57,7 +57,7 @@ namespace SteelEngine.Input
 				for (int i = 0; i < count; i++)
 				{
 					
-					switch(buttons[i])
+					switch (buttons[i])
 					{
 						case .Press: Log.Info("{0}", i);
  						default: break;
@@ -98,6 +98,7 @@ namespace SteelEngine.Input
 					Glfw.GetJoystickName(id, deviceName);
 					Input.[Friend]GamepadConnected((Input.GamepadId)id, deviceName);
 					_connectedGamepads.Add(id);
+					Log.Info("Gamepad '{0}' connected with id: {1}", deviceName, id);
 				}
 				case .Disconnected:
 				{
@@ -143,13 +144,5 @@ namespace SteelEngine.Input
 			return true;
 		}
 
-		public ~this()
-		{
-			for (var pad in _connectedGamepads)
-			{
-				Input.[Friend]GamepadDisconnected((.)pad);
-			}
-			
-		}
 	}
 }

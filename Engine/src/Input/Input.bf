@@ -14,7 +14,7 @@ namespace SteelEngine.Input
 		public struct GamepadId : int32 { }
 
 		static var _accumulatedEvents = KeyEvent[KeyCode.MAX]();
-		static var _lastUpdateState = KeyStatus[KeyCode.MAX]();
+		static var _lastUpdateState = KeyState[KeyCode.MAX]();
 		static var _accumulatedAxisValues = float[AxisCode.MAX]();
 		static var _axisValues = float[AxisCode.MAX]();
 
@@ -22,6 +22,13 @@ namespace SteelEngine.Input
 		static (float, float) _lastMousePos;		// @TODO(fusion): replace with vector2
 		static (float, float) _mouseDelta;			// @TODO(fusion): replace with vector2
 		static Dictionary<GamepadId, GamepadInfo> _gamepads = new Dictionary<GamepadId, GamepadInfo>() ~ delete _;
+		static Dictionary<String, KeyCode> _keycodeActionMap = new Dictionary<String, KeyCode>() ~  DeleteDictionaryAndKeys!(_);
+
+		static ~this()
+		{
+			for (var pad in _gamepads.Values)
+				delete pad;
+		}
 
 		static void KeyEvent(KeyCode kc, KeyEvent ke)
 		{
@@ -65,7 +72,7 @@ namespace SteelEngine.Input
 
 		static void GamepadDisconnected(GamepadId gamepadId)
 		{
-			if(_gamepads.GetAndRemove(gamepadId) case .Ok(let val))
+			if (_gamepads.GetAndRemove(gamepadId) case .Ok(let val))
 			{
 				delete val.value;
 			}
@@ -96,7 +103,8 @@ namespace SteelEngine.Input
 			}
 
 			// Update gamepads
-			for(let pad in _gamepads.Values) pad.Update();
+			for (let pad in _gamepads.Values)
+				pad.Update();
 
 			// Update axis
 			_axisValues = _accumulatedAxisValues;
@@ -117,7 +125,7 @@ namespace SteelEngine.Input
 			_accumulatedEvents = default;
 			_lastUpdateState = default;
 			_axisValues = default;
-			for(let pad in _gamepads.Values) pad.ResetInput();
+			for (let pad in _gamepads.Values) pad.ResetInput();
 		}
 
 		public static bool GetKeyDown(KeyCode kc)
@@ -180,6 +188,80 @@ namespace SteelEngine.Input
 			return default;
 		}
 
+		public static StringView GetGamepadName(GamepadId gamepadId)
+		{
+			GamepadInfo gamepad;
+			if (_gamepads.TryGetValue(gamepadId, out gamepad))
+			{
+				return gamepad.Name;
+			}
+			return .();
+		}
+
 		public static (float, float) MousePosition => _mousePos;
+		public static Dictionary<GamepadId, GamepadInfo>.KeyEnumerator ConnectedGamepads => _gamepads.Keys;
+		public static int ConnectedGamepadsCount => _gamepads.Count;
+
+		public static void SetInputMapping(StringView action, KeyCode kc)
+		{
+			String key;
+			KeyCode boundKeyCode;
+			if (_keycodeActionMap.TryGetAlt(action, out key, out boundKeyCode))
+			{
+				_keycodeActionMap[key] = kc;
+			}
+			else
+			{
+				key = new String(action);
+				_keycodeActionMap[key] = kc;
+			}
+		}
+
+		public static void RemoveInputMapping(StringView action)
+		{
+			String key;
+			KeyCode boundKeyCode;
+			if (_keycodeActionMap.TryGetAlt(action, out key, out boundKeyCode))
+			{
+				_keycodeActionMap.RemoveAlt(action);
+				delete key;
+			}
+		}
+
+		public static bool IsJustPressed(StringView action)
+		{
+			String key;
+			KeyCode boundKeyCode;
+			if (_keycodeActionMap.TryGetAlt(action, out key, out boundKeyCode))
+			{
+				return GetKeyDown(boundKeyCode);	
+			}
+			return false;
+		}
+
+		public static bool IsJustReleased(StringView action)
+		{
+			String key;
+			KeyCode boundKeyCode;
+			if (_keycodeActionMap.TryGetAlt(action, out key, out boundKeyCode))
+			{
+				return GetKeyUp(boundKeyCode);	
+			}
+			return false;
+		}
+
+		public static bool IsHeld(StringView action)
+		{
+			String key;
+			KeyCode boundKeyCode;
+			if (_keycodeActionMap.TryGetAlt(action, out key, out boundKeyCode))
+			{
+				return GetKey(boundKeyCode);	
+			}
+			return false;
+		}
+
+
+
 	}
 }
