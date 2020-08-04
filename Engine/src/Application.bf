@@ -74,7 +74,13 @@ namespace SteelEngine
 
 			for (let system in _systems)
 			{
-				system.[Friend]Initialize();
+				switch (system.[Friend]Initialize())
+				{
+					case .Ok: continue;
+					case .Err(.AlreadyInitialized): Log.Warning("Tried to initialize a system that was already initialized.");
+					case .Err(.Unknown):
+					default: Log.Fatal("Unknown error initializing a system");
+				}
 			}
 
 			while (_isRunning)

@@ -169,31 +169,40 @@ namespace SteelEngine.ECS.Systems
 			return entityComponents;
 		}
 
-		protected virtual void Initialize()
+		protected virtual Result<void, InitializationError> Initialize()
 		{
 			if (!IsEnabled || IsInitialized)
 			{
-				return;
+				return .Err(.AlreadyInitialized);
 			}
-			InitializeComponents();
+			if (InitializeComponents() == .Err)
+			{
+				return .Err(.Unknown);
+			}
 			IsInitialized = true;
+			return .Ok;
 		}
 
-		protected virtual void Initialize(BaseComponent component)
+		protected virtual Result<void> Initialize(BaseComponent component)
 		{
 			component.[Friend]IsInitialized = true;
+			return .Ok;
 		}
 
-		protected void InitializeComponents()
+		protected Result<void> InitializeComponents()
 		{
 			while (_uninitializedComponents.Count != 0)
 			{
 				let component = _uninitializedComponents.Dequeue();
 				if (!component.IsInitialized)
 				{
-					Initialize(component);
+					if (Initialize(component) == .Err)
+					{
+						return .Err;
+					}
 				}
 			}
+			return .Ok;
 		}
 
 		protected virtual void PostUpdate()
@@ -299,5 +308,11 @@ namespace SteelEngine.ECS.Systems
 				delete item.value;
 			}
 		}
+	}
+
+	public enum InitializationError
+	{
+		AlreadyInitialized,
+		Unknown,
 	}
 }
