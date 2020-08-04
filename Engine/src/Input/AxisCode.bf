@@ -6,23 +6,15 @@ namespace SteelEngine.Input
 		MouseY,
 		MouseScroll,
 
-		GamepadLeftStickX,
-		GamepadLeftStickY,
-		GamepadRightStickX,
-		GamepadRightStickY,
-		GamepadLeftTrigger,
-		GamepadRightTrigger,
+		// Gamepad
+		LeftStickX,
+		LeftStickY,
+		RightStickX,
+		RightStickY,
+		LeftTrigger,
+		RightTrigger,
 
 		MAX
 	}
 
-	public enum GamepadAxisCode : AxisCode
-	{
-		LeftStickX = (.)AxisCode.GamepadLeftStickX,
-		LeftStickY = (.)AxisCode.GamepadLeftStickY,
-		LeftTrigger = (.)AxisCode.GamepadLeftTrigger,
-		RightStickX = (.)AxisCode.GamepadRightStickX,
-		RightStickY = (.)AxisCode.GamepadRightStickY,
-		RightTrigger = (.)AxisCode.GamepadRightTrigger,
-	}
 }

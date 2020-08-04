@@ -3,17 +3,17 @@ namespace SteelEngine.Input
 {
 	public class GamepadInfo
 	{
-		const let KeyCodeStart = KeyCode.GamepadA;
-		const let KeyCodeEnd = KeyCode.GamepadRightStick + 1;
-		const let AxisCodeStart = GamepadAxisCode.LeftStickX;
-		const let AxisCodeEnd = GamepadAxisCode.RightTrigger + 1;
+		const let KEYCODE_START = KeyCode.GamepadA;
+		const let KEYCODE_END = KeyCode.GamepadRightStick + 1;
+		const let AXISCODE_START = AxisCode.LeftStickX;
+		const let AXISCODE_END = AxisCode.RightTrigger + 1;
 
-		const int NUMBER_OF_KEYS = int(KeyCodeEnd-KeyCodeStart);
-		const int NUMBER_OF_AXIS = int(AxisCodeEnd-AxisCodeStart);
+		const int NUMBER_OF_KEYS = int(KEYCODE_END-KEYCODE_START);
+		const int NUMBER_OF_AXES = int(AXISCODE_END-AXISCODE_START);
 
 		KeyEvent[NUMBER_OF_KEYS] _accumulatedKeyEvents;
 		KeyState[NUMBER_OF_KEYS] _keyStates;
-		float[NUMBER_OF_AXIS] _axisValues;
+		float[NUMBER_OF_AXES] _axisValues;
 
 		String _gamepadName ~ delete _;
 
@@ -53,34 +53,58 @@ namespace SteelEngine.Input
 			_axisValues = default;
 		}
 
-		public float GetAxis(GamepadAxisCode ac)
+		static mixin CheckRange(AxisCode ac)
 		{
-			return _axisValues[(ac - AxisCodeStart).Underlying];
+			if(ac < AXISCODE_START || ac >= AXISCODE_END)
+			{
+				Log.Error("AxisCode '{0}' outside of mappable range!", ac);
+				return default;
+			}
+		}
+
+		static mixin CheckRange(KeyCode kc)
+		{
+			if(kc < KEYCODE_START || kc >= KEYCODE_END)
+			{
+				Log.Error("KeyCode '{0}' outside of mappable range!", kc);
+				return default;
+			}
+		}
+
+		public float GetAxis(AxisCode ac)
+		{
+			CheckRange!(ac);
+			return _axisValues[(ac - AXISCODE_START).Underlying];
 		}
 
 		public bool GetKeyDown(KeyCode kc)
 		{
-			return _keyStates[(kc - KeyCodeStart).Underlying].HasFlag(.Down);
+			CheckRange!(kc);
+			return _keyStates[(kc - KEYCODE_START).Underlying].HasFlag(.Down);
 		}
 
 		public bool GetKeyUp(KeyCode kc)
 		{
-			return _keyStates[(kc - KeyCodeStart).Underlying].HasFlag(.Up);
+			CheckRange!(kc);
+			return _keyStates[(kc - KEYCODE_START).Underlying].HasFlag(.Up);
 		}
 
 		public bool GetKey(KeyCode kc)
 		{
-			return _keyStates[(kc - KeyCodeStart).Underlying].HasFlag(.Hold);
+			CheckRange!(kc);
+			return _keyStates[(kc - KEYCODE_START).Underlying].HasFlag(.Hold);
 		}
 
+		// Set functions are not called by user code
+		// Don't see the need to add range checks in these
 		void SetKey(KeyCode kc, KeyEvent ke)
 		{
-			_accumulatedKeyEvents[(kc - KeyCodeStart).Underlying] = ke;
+			_accumulatedKeyEvents[(kc - KEYCODE_START).Underlying] = ke;
 		}
 
-		void SetAxis(GamepadAxisCode ac, float value)
+		void SetAxis(AxisCode ac, float value)
 		{
-			_axisValues[(int)(ac - AxisCodeStart)] = value;
+			_axisValues[(int)(ac - AXISCODE_START)] = value;
 		}
 
 		public this(StringView gamepadName)

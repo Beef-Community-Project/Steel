@@ -6,7 +6,7 @@ using glfw_beef;
 
 namespace SteelEngine.Input
 {
-	public class GLFWInputSystem
+	public class GLFWInputManager
 	{
 		HashSet<int> _connectedGamepads = new HashSet<int>() ~ delete _;
 

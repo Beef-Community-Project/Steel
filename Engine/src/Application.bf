@@ -11,7 +11,7 @@ namespace SteelEngine
 
 		private Window _window ~ delete _;
 		private Window.EventCallback _eventCallback = new => OnEvent ~ delete _;
-		private GLFWInputSystem _inputSystem = new GLFWInputSystem() ~ delete _;
+		private GLFWInputManager _inputSystem = new GLFWInputManager() ~ delete _;
 
 		public this()
 		{
@@ -35,7 +35,7 @@ namespace SteelEngine
 			while (_isRunning)
 			{
 				_inputSystem.Update();
-
+				
 				_window.Update();
 			}
 		}

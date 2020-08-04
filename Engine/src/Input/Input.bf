@@ -50,7 +50,7 @@ namespace SteelEngine.Input
 			KeyEvent(kc, ke);
 		}
 
-		static void GamepadAxisEvent(GamepadId id, GamepadAxisCode ac, float value)
+		static void GamepadAxisEvent(GamepadId id, AxisCode ac, float value)
 		{
 			GamepadInfo gamepad;
 			if (_gamepads.TryGetValue(id, out gamepad))
@@ -125,7 +125,8 @@ namespace SteelEngine.Input
 			_accumulatedEvents = default;
 			_lastUpdateState = default;
 			_axisValues = default;
-			for (let pad in _gamepads.Values) pad.ResetInput();
+			for (let pad in _gamepads.Values)
+				pad.ResetInput();
 		}
 
 		public static bool GetKeyDown(KeyCode kc)
@@ -178,7 +179,7 @@ namespace SteelEngine.Input
 			return false;
 		}
 
-		public static float GetGamepadAxis(GamepadId gamepadId, GamepadAxisCode ac)
+		public static float GetGamepadAxis(GamepadId gamepadId, AxisCode ac)
 		{
 			GamepadInfo gamepad;
 			if (_gamepads.TryGetValue(gamepadId, out gamepad))

@@ -200,9 +200,9 @@ namespace SteelEngine.Input
 				case .RightThumb: return .GamepadRightStick;
 				case .Start: return .GamepadStart;
 				case .Guide: return .GamepadHome;
-				case .Back: return .GamepadSelect;
-				case .LeftBumper: return .GamepadL1;
-				case .RightBumper: return .GamepadR1;
+				case .Back: return .GamepadBack;
+				case .LeftBumper: return .GamepadLeftBumper;
+				case .RightBumper: return .GamepadRightBumper;
 				default: return .None;
 			}
 		}
