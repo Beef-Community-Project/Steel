@@ -3,6 +3,7 @@ using SteelEngine;
 using SteelEngine.ECS.Components;
 using SteelEngine.ECS;
 using SteelEngine.ECS.Systems;
+using System.Collections;
 
 namespace BasicSteelGame
 {
@@ -31,22 +32,34 @@ namespace BasicSteelGame
 			_registeredTypes = new Type[]{ typeof(MyBehavior) };
 		}
 
-		protected override void UpdateComponent(BaseComponent component, float delta)
+		protected override void Update(EntityId entityId, List<BaseComponent> components, float delta)
 		{
-			if (!component.IsEnabled)
+			Entity entity = ?;
+			if (!Entity.EntityStore.TryGetValue(entityId, out entity) || !entity.IsEnabled)
 			{
 				return;
 			}
-			(component as MyBehavior).[Friend]MyUpdate(delta);
+			
+			for (let component in components)
+			{
+				if (!component.IsEnabled)
+				{
+					continue;
+				}
+				(component as MyBehavior).[Friend]MyUpdate(delta);
+			}
 		}
 
-		protected override void DrawComponent(BaseComponent component)
+		protected override void Draw(EntityId entityId, List<BaseComponent> components)
 		{
-			if (!component.IsEnabled)
+			for (let component in components)
 			{
-				return;
+				if (!component.IsEnabled)
+				{
+					continue;
+				}
+				(component as MyBehavior).[Friend]MyDraw();
 			}
-			(component as MyBehavior).[Friend]MyDraw();
 		}
 	}
 

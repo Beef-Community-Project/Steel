@@ -12,10 +12,5 @@ namespace SteelEngine.ECS.Systems
 		{
 			_registeredTypes = new Type[]{ typeof(Physics2dComponent), typeof(TransformComponent) };
 		}
-
-		protected override void UpdateComponent(BaseComponent component, float delta)
-		{
-			base.UpdateComponent(component, delta);
-		}
 	}
 }

@@ -8,10 +8,6 @@ namespace SteelEngine.ECS.Systems
 	{
 		public this(Application app) : base(app) {}
 
-		protected override void DrawComponent(BaseComponent component)
-		{
-		}
-
 		protected override void RegisterComponentTypes()
 		{
 			_registeredTypes = new Type[]{ typeof(Drawable3dComponent), typeof(TransformComponent) };

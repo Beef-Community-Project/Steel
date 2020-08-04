@@ -5,6 +5,8 @@ using SteelEngine.ECS.Systems;
 
 namespace SteelEngine.ECS
 {
+	typealias EntityId = uint64;
+
 	public class Entity
 	{
 		public this(Application app)
@@ -18,17 +20,17 @@ namespace SteelEngine.ECS
 
 		static this()
 		{
-			EntityStore = new Dictionary<uint64, Entity>();
+			EntityStore = new Dictionary<EntityId, Entity>();
 		}
 
 		public Application App { get; private set; }
 
-		public static Dictionary<uint64, Entity> EntityStore { get; private set; }
+		public static Dictionary<EntityId, Entity> EntityStore { get; private set; };
 
 		/// <summary>
 		/// Unique identifier for the Entity.
 		/// </summary>
-		public uint64 Id { get; private set; }
+		public EntityId Id { get; private set; }
 
 		/// <summary>
 		/// Whether or not the Entity and all child Components should be drawn or updated.
@@ -66,9 +68,9 @@ namespace SteelEngine.ECS
 			return App.[Friend]RemoveComponent(component);
 		}
 
-		private static uint64 _nextId = 0;
+		private static EntityId _nextId = 0;
 
-		private static uint64 GetNextId()
+		private static EntityId GetNextId()
 		{
 			return _nextId++;
 		}

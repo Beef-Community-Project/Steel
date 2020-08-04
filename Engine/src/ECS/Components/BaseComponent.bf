@@ -2,6 +2,7 @@ using System;
 
 namespace SteelEngine.ECS.Components
 {
+	typealias ComponentId = uint64;
 	/// <summary>
 	/// Abstract class defining all Components.
 	/// A class derived from Component will be managed by an appropriate <see cref="SteelEngine.ECS.Systems.System"/>.
@@ -18,7 +19,7 @@ namespace SteelEngine.ECS.Components
 		/// <summary>
 		/// Unique identifier for the Component.
 		/// </summary>
-		public uint64 Id { get; private set; }
+		public ComponentId Id { get; private set; }
 
 		/// <summary>
 		/// Enabled Components are managed by their corresponding <see cref="SteelEngine.ECS.Systems.System"/>, otherwise the Component is ignored.
@@ -38,11 +39,9 @@ namespace SteelEngine.ECS.Components
 
 		public bool IsQueuedForDeletion { get; private set; }
 
-		public bool ShouldCheckParentRegistration { get; private set; }
+		private static ComponentId _nextId = 0;
 
-		private static uint64 _nextId = 0;
-
-		private static uint64 GetNextId()
+		private static ComponentId GetNextId()
 		{
 			return _nextId++;
 		}

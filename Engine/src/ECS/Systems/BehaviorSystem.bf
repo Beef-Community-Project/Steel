@@ -13,13 +13,22 @@ namespace SteelEngine.ECS.Systems
 			_registeredTypes = new Type[]{ typeof(BehaviorComponent) };
 		}
 
-		protected override void UpdateComponent(BaseComponent component, float delta)
+		protected override void Update(EntityId entityId, List<BaseComponent> components, float delta)
 		{
-			if (!component.IsEnabled)
+			Entity entity = ?;
+			if (!Entity.EntityStore.TryGetValue(entityId, out entity) || !entity.IsEnabled)
 			{
 				return;
 			}
-			(component as BehaviorComponent).[Friend]Update(delta);
+			
+			for (let component in components)
+			{
+				if (!component.IsEnabled)
+				{
+					continue;
+				}
+				(component as BehaviorComponent).[Friend]Update(delta);
+			}
 		}
 	}
 }

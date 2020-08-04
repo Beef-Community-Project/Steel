@@ -11,11 +11,6 @@ namespace SteelEngine.ECS.Systems
 		protected override void RegisterComponentTypes()
 		{
 			_registeredTypes = new Type[]{ typeof(SoundComponent), typeof(TransformComponent) };
-		} 
-
-		protected override void UpdateComponent(BaseComponent component, float delta)
-		{
-			base.UpdateComponent(component, delta);
 		}
 	}
 }

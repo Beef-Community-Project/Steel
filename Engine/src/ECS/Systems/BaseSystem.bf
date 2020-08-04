@@ -13,9 +13,9 @@ namespace SteelEngine.ECS.Systems
 		{
 			App = app;
 			IsEnabled = true;
-			Components = new Dictionary<uint64, BaseComponent>();
+			EntityToComponents = new Dictionary<EntityId, List<BaseComponent>>();
 			_uninitializedComponents = new Queue<BaseComponent>();
-			_componentRegistrationChecks = new List<BaseComponent>();
+			_entityRegistrationChecks = new List<EntityId>();
 
 			RegisterComponentTypes();
 		}
@@ -25,7 +25,7 @@ namespace SteelEngine.ECS.Systems
 		/// <summary>
 		/// All tracked components.
 		/// </summary>
-		public Dictionary<uint64, BaseComponent> Components ~ delete _;
+		public Dictionary<EntityId, List<BaseComponent>> EntityToComponents ~ delete _;
 
 		/// <summary>
 		/// Whether or not the System has called <see cref="Initialize()"/>.
@@ -37,35 +37,10 @@ namespace SteelEngine.ECS.Systems
 		/// </summary>
 		public bool IsInitialized { get; protected set; }
 
-		public virtual void Draw()
-		{
-			if (!IsEnabled)
-			{
-				return;
-			}
-			InitializeComponents();
-			for (let item in Components)
-			{
-				DrawComponent(item.value);
-			}
-		}
-
-		public T GetComponent<T>(uint64 id) where T : BaseComponent
-		{
-			BaseComponent component = ?;
-			uint64 matchKey = ?;
-			Components.TryGet(id, out matchKey, out component);
-			if (component is T)
-			{
-				return component;
-			}
-			return null;
-		}
-
 		/// <summary>
-		/// Components that need registraton checks.
+		/// Entities that need registration checks.
 		/// </summary>
-		protected List<BaseComponent> _componentRegistrationChecks ~ delete _;
+		protected List<EntityId> _entityRegistrationChecks ~ delete _;
 
 		/// <summary>
 		/// Tracks all potentially uninitialized <see cref="SteelEngine.ECS.BaseComponent"/> objects.
@@ -86,12 +61,31 @@ namespace SteelEngine.ECS.Systems
 		/// <returns>Whether or not the <see cref="SteelEngine.ECS.BaseComponent"/> was added to this BehaviorSystem's <see cref="Components"/>. Returns false if the <see cref="SteelEngine.ECS.BaseComponent"/> already existed.</returns>
 		protected virtual bool AddComponent(BaseComponent component)
 		{
-			if (Components.ContainsKey(component.Id))
+			let parent = component.Parent;
+			List<BaseComponent> entityComponents = ?;
+			if (parent == null)
 			{
 				return false;
 			}
+			bool isNewEntity = false;
+			if (!EntityToComponents.TryGetValue(parent.Id, out entityComponents))
+			{
+				isNewEntity = true;
+				entityComponents = new List<BaseComponent>();
+			}
+			for (let entityComponent in entityComponents)
+			{
+				if (component.Id == entityComponent.Id)
+				{
+					return false;
+				}
+			}
 			if (!CanBeRegistered(component))
 			{
+				if (isNewEntity)
+				{
+					delete entityComponents;
+				}
 				return false;
 			}
 
@@ -99,9 +93,13 @@ namespace SteelEngine.ECS.Systems
 			{
 				_uninitializedComponents.Enqueue(component);
 			}
-			Components[component.Id] = component;
+			if (isNewEntity)
+			{
+				EntityToComponents[parent.Id] = entityComponents;
+			}
+			entityComponents.Add(component);
 			component.[Friend]IsQueuedForDeletion = false;
-			component.[Friend]ShouldCheckParentRegistration = true;
+			_entityRegistrationChecks.Add(parent.Id);
 			return true;
 		}
 
@@ -127,18 +125,48 @@ namespace SteelEngine.ECS.Systems
 			return false;
 		}
 
-		protected virtual void DrawComponent(BaseComponent component) {}
-
-		protected void GetComponentsOfEntity(Entity entity, List<BaseComponent> outList)
+		protected void ClearEmptyEntities()
 		{
-			for (let item in Components)
+			let entitiesToRemove = new List<EntityId>();
+			defer delete entitiesToRemove;
+
+			for (let item in EntityToComponents)
 			{
-				let component = item.value;
-				if (component.Parent != null && component.Parent.Id == entity.Id)
+				if (item.value == null || item.value.Count == 0)
 				{
-					outList.Add(component);
+					entitiesToRemove.Add(item.key);
 				}
 			}
+			for (let entity in entitiesToRemove)
+			{
+				EntityToComponents.Remove(entity);
+			}
+		}
+
+		protected virtual void Draw()
+		{
+			if (!IsEnabled)
+			{
+				return;
+			}
+			InitializeComponents();
+
+			for (let item in EntityToComponents)
+			{
+				Draw(item.key, item.value);
+			}
+		}
+
+		protected virtual void Draw(EntityId entityId, List<BaseComponent> components)
+		{
+
+		}
+
+		protected List<BaseComponent> GetComponentsOfEntity(Entity entity)
+		{
+			List<BaseComponent> entityComponents = ?;
+			EntityToComponents.TryGetValue(entity.Id, out entityComponents);
+			return entityComponents;
 		}
 
 		protected virtual void Initialize()
@@ -168,31 +196,33 @@ namespace SteelEngine.ECS.Systems
 			}
 		}
 
-		protected bool RefreshEntityRegistration(Entity entity)
+		protected virtual void PostUpdate()
 		{
-			if (entity == null)
+			ClearEmptyEntities();
+		}
+
+		protected virtual void PreUpdate()
+		{
+			ClearEmptyEntities();
+		}
+
+		protected bool RefreshEntityRegistration(EntityId entityId)
+		{
+			List<BaseComponent> components = ?;
+			if (!EntityToComponents.TryGetValue(entityId, out components))
 			{
 				return false;
 			}
 
-			for (let item in Components)
-			{
-				let component = item.value;
-				if (component.Parent != null && component.Parent.Id == entity.Id)
-				{
-					_componentRegistrationChecks.Add(component);
-				}
-			}
-			defer _componentRegistrationChecks.Clear();
-
+			let componentsToRemove = new List<BaseComponent>();
+			var valid = true;
 			// Check if every required Component is present
 			for (let type in _registeredTypes)
 			{
 				// Check all components for the registered type
 				bool found = false;
-				for (let component in _componentRegistrationChecks)
+				for (let component in components)
 				{
-					component.[Friend]ShouldCheckParentRegistration = false;
 					if (CanBeRegisteredAsType(component, type))
 					{
 						found = true;
@@ -203,27 +233,37 @@ namespace SteelEngine.ECS.Systems
 				{
 					continue;
 				}
-				// Registered type is not present. This invalidates all components that are registered.
-				for (let component in _componentRegistrationChecks)
+				// Registered type is not present. This invalidates all components that are registered to this entity.
+				for (let component in components)
 				{
-					RemoveComponent(component);
+					componentsToRemove.Add(component);
 				}
-				return false;
+				valid = false;
+			}
+			for (let component in componentsToRemove)
+			{
+				RemoveComponent(component);
 			}
 
-			return true;
+			return valid;
 		}
 
 		protected abstract void RegisterComponentTypes();
 
 		protected virtual bool RemoveComponent(BaseComponent component)
 		{
-			return RemoveComponent(component.Id);
-		}
-
-		protected virtual bool RemoveComponent(uint64 componentId)
-		{
-			return Components.Remove(componentId);
+			let parent = component.Parent;
+			List<BaseComponent> components = ?;
+			if (parent == null || !EntityToComponents.TryGetValue(parent.Id, out components))
+			{
+				return false;
+			}
+			if (components.Remove(component))
+			{
+				_entityRegistrationChecks.Add(parent.Id);
+				return true;
+			}
+			return false;
 		}
 
 		protected virtual void Update(float delta)
@@ -235,26 +275,28 @@ namespace SteelEngine.ECS.Systems
 			InitializeComponents();
 
 			// Before running the update, check registration status of all components.
-			for (let component in _componentRegistrationChecks)
+			for (let entity in _entityRegistrationChecks)
 			{
-				if (component.ShouldCheckParentRegistration)
-				{
-					RefreshEntityRegistration(component.Parent);
-				}
+				RefreshEntityRegistration(entity);
 			}
-			_componentRegistrationChecks.Clear();
+			_entityRegistrationChecks.Clear();
 
-			for (let item in Components)
+			for (let item in EntityToComponents)
 			{
-				UpdateComponent(item.value, delta);
+				Update(item.key, item.value, delta);
 			}
 		}
 
-		protected virtual void UpdateComponent(BaseComponent component, float delta)
+		protected virtual void Update(EntityId entityId, List<BaseComponent> components, float delta)
 		{
-			if (!component.IsEnabled)
+
+		}
+
+		public ~this()
+		{
+			for (let item in EntityToComponents)
 			{
-				return;
+				delete item.value;
 			}
 		}
 	}

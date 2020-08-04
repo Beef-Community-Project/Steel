@@ -16,7 +16,7 @@ namespace SteelEngine
 		private Window _window ~ delete _;
 		private Window.EventCallback _eventCallback = new => OnEvent ~ delete _;
 		private List<BaseSystem> _systems ~ delete _;
-		private Dictionary<uint64, BaseComponent> _components ~ delete _;
+		private Dictionary<ComponentId, BaseComponent> _components ~ delete _;
 		private List<BaseComponent> _componentsToDelete ~ delete _;
 
 		public this()
@@ -54,7 +54,7 @@ namespace SteelEngine
 						system.[Friend]AddComponent(component);
 					}
 				}
-				system.[Friend]RefreshEntityRegistration(entity);
+				system.[Friend]RefreshEntityRegistration(entity.Id);
 			}
 
 			return system;
@@ -89,7 +89,7 @@ namespace SteelEngine
 		{
 			Log.AddHandle(Console.Out);
 
-			_components = new Dictionary<uint64, BaseComponent>();
+			_components = new Dictionary<ComponentId, BaseComponent>();
 			_componentsToDelete = new List<BaseComponent>();
 
 			_systems = new List<BaseSystem>();
@@ -179,7 +179,9 @@ namespace SteelEngine
 			DeleteQueuedComponents();
 			for (let system in _systems)
 			{
+				system.[Friend]PreUpdate();
 				system.[Friend]Update(delta);
+				system.[Friend]PostUpdate();
 			}
 		}
 
@@ -187,7 +189,7 @@ namespace SteelEngine
 		{
 			for (let system in _systems)
 			{
-				system.Draw();
+				system.[Friend]Draw();
 			}
 
 			_window.Update();
@@ -200,7 +202,12 @@ namespace SteelEngine
 			{
 				return false;
 			}
-			_components[component.Id] = component;
+			var parent = component.Parent;
+			if (parent == null)
+			{
+				return false;
+			}
+
 			for (let item in _components)
 			{
 				let entityComponent = item.value;
@@ -214,13 +221,11 @@ namespace SteelEngine
 					}
 				}
 			}
-
 			for (let system in _systems)
 			{
 				system.[Friend]AddComponent(component);
-				// Now that all possible components are registered, refresh the entity registration.
-				system.[Friend]RefreshEntityRegistration(component.Parent);
 			}
+			_components[component.Id] = component;
 			return true;
 		}
 
@@ -238,11 +243,9 @@ namespace SteelEngine
 
 			for (let component in _componentsToDelete)
 			{
-				let parent = component.Parent;
 				for (let system in _systems)
 				{
 					system.[Friend]RemoveComponent(component);
-					system.[Friend]RefreshEntityRegistration(parent);
 				}
 				_components.Remove(component.Id);
 				delete component;
