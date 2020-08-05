@@ -15,9 +15,12 @@ namespace SteelEngine
 
 		private Window _window ~ delete _;
 		private Window.EventCallback _eventCallback = new => OnEvent ~ delete _;
+
 		private List<BaseSystem> _systems ~ delete _;
 		private Dictionary<ComponentId, BaseComponent> _components ~ delete _;
 		private List<BaseComponent> _componentsToDelete ~ delete _;
+		private GLFWInputManager _inputManager = new GLFWInputManager() ~ delete _;
+
 
 		public this()
 		{
@@ -72,6 +75,7 @@ namespace SteelEngine
 			var windowConfig = WindowConfig(1080, 720, "SteelEngine");
 			_window = new Window(windowConfig, _eventCallback);
 
+			_inputManager.Initialize();
 			for (let system in _systems)
 			{
 				switch (system.[Friend]Initialize())
@@ -87,6 +91,7 @@ namespace SteelEngine
 			{
 				Update(0f); // Should eventually send a delta representing the time between frames.
 				Draw();
+
 			}
 		}
 
@@ -134,17 +139,10 @@ namespace SteelEngine
 		// Gets called when an event occurs in the window
 		public void OnEvent(Event event)
 		{
+			_inputManager.OnEvent(event);
+
 			var dispatcher = scope EventDispatcher(event);
 			dispatcher.Dispatch<WindowCloseEvent>(scope => OnWindowClose);
-			dispatcher.Dispatch<KeyPressedEvent>(scope => OnKeyPressed);
-			dispatcher.Dispatch<KeyReleasedEvent>(scope => OnKeyRelease);
-			dispatcher.Dispatch<MouseButtonPressedEvent>(scope => OnMouseButtonPressed);
-			dispatcher.Dispatch<MouseButtonReleasedEvent>(scope => OnMouseButtonReleased);
-
-			if (event.EventType == .WindowLostFocus)
-			{
-				Input.ResetInput();
-			}
 		}
 
 		private bool OnWindowClose(WindowCloseEvent event)
@@ -153,36 +151,12 @@ namespace SteelEngine
 			return true;
 		}
 
-		private bool OnKeyPressed(KeyPressedEvent event)
-		{
-			Input.[Friend]KeyEvent(GLFWKeyMapper.MapKeyboardKey((.)event.KeyCode), .Down);
-			return true;
-		}
-
-		private bool OnKeyRelease(KeyReleasedEvent event)
-		{
-			Input.[Friend]KeyEvent(GLFWKeyMapper.MapKeyboardKey((.)event.KeyCode), .Up);
-			return true;
-		}
-
-		private bool OnMouseButtonPressed(MouseButtonPressedEvent event)
-		{
-			
-			Input.[Friend]KeyEvent(GLFWKeyMapper.MapMouseButton((.)event.Button), .Down);
-			return true;
-		}
-
-		private bool OnMouseButtonReleased(MouseButtonReleasedEvent event)
-		{
-			Input.[Friend]KeyEvent(GLFWKeyMapper.MapMouseButton((.)event.Button), .Up);
-			return true;
-		}
 
 		private void Update(float delta)
 		{
-			Input.[Friend]Update();
+			_inputManager.Update();
 
-			DeleteQueuedComponents();
+			//DeleteQueuedComponents();
 			for (let system in _systems)
 			{
 				system.[Friend]PreUpdate();

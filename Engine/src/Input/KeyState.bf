@@ -1,6 +1,6 @@
 namespace SteelEngine.Input
 {
-	public enum KeyStatus : uint8
+	public enum KeyState : uint8
 	{
 		Unknown = 0x00,
 		Down = 0x01,

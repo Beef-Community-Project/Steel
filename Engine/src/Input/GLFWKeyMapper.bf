@@ -61,8 +61,8 @@ namespace SteelEngine.Input
 			(.RightBracket, .RightBracket),
 
 			(.GraveAccent, .BackQuote),		
-			(.World1, .World1),				
-			(.World2, .None),					// @TODO
+			(.World1, .Clear),				
+			(.World2, .Pipe),					// @TODO
 
 			(.Escape, .Escape),
 			(.Enter, .Return),
@@ -110,7 +110,6 @@ namespace SteelEngine.Input
 			(.F22, .F22),
 			(.F23, .F23),
 			(.F24, .F24),
-			//(.F25, .F25),		// @TODO - add F25?
 
 			(.Kp0, .Keypad0),
 			(.Kp1, .Keypad1),
@@ -133,13 +132,30 @@ namespace SteelEngine.Input
 			(.LeftShift, .LeftShift),
 			(.LeftControl, .LeftControl),
 			(.LeftAlt, .LeftAlt),
-			(.LeftSuper, .LeftWindows),	// @TODO - its platform dependant
+			(.LeftSuper, .LeftSuper),
 			(.RightShift, .RightShift),
 			(.RightControl, .RightControl),
 			(.RightAlt, .RightAlt),
-			(.RightSuper, .LeftWindows),	// @TODO
+			(.RightSuper, .RightSuper),
 			(.Menu, .Menu),
 		} ~ delete _;
+
+		public static void PrintUnusedKeyCodes()
+		{
+			HashSet<KeyCode> keyCodes = scope .();
+			for (let v in _keyCodeMap.Values)
+			{
+				keyCodes.Add(v);
+			}
+			Log.Info("Unused KeyCodes:");
+			for (var i = KeyCode.None; i < KeyCode.Menu + 1; i++)
+			{
+				if (!keyCodes.Contains(i))
+				{
+					Log.Info("{0}", i);
+				}
+			}
+		}	
 
 		public static KeyCode MapKeyboardKey(GlfwInput.Key key)
 		{
@@ -163,8 +179,31 @@ namespace SteelEngine.Input
 				case .Button5: return .Mouse4;
 				case .Button6: return .Mouse5;
 				case .Button7: return .Mouse6;
-	
-				case .Button8: return .None; 	// @TODO
+				case .Button8: return .Mouse7;
+				default: return .None;
+			}
+		}
+
+		public static KeyCode MapGamepadButton(GlfwInput.GamepadButton button)
+		{
+			switch (button)
+			{
+				case .A: return .GamepadA;
+				case .B: return .GamepadB;
+				case .X: return .GamepadX;
+				case .Y: return .GamepadY;
+				case .DPadLeft: return .GamepadLeft;
+				case .DPadRight: return .GamepadRight;
+				case .DPadUp: return .GamepadUp;
+				case .DPadDown: return .GamepadDown;
+				case .LeftThumb: return .GamepadLeftStick;
+				case .RightThumb: return .GamepadRightStick;
+				case .Start: return .GamepadStart;
+				case .Guide: return .GamepadHome;
+				case .Back: return .GamepadBack;
+				case .LeftBumper: return .GamepadLeftBumper;
+				case .RightBumper: return .GamepadRightBumper;
+				default: return .None;
 			}
 		}
 	}
