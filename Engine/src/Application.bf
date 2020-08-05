@@ -11,6 +11,7 @@ namespace SteelEngine
 
 		private Window _window ~ delete _;
 		private Window.EventCallback _eventCallback = new => OnEvent ~ delete _;
+		private GLFWInputManager _inputSystem = new GLFWInputManager() ~ delete _;
 
 		public this()
 		{
@@ -29,9 +30,12 @@ namespace SteelEngine
 			var windowConfig = WindowConfig(1080, 720, "SteelEngine");
 			_window = new Window(windowConfig, _eventCallback);
 
+			_inputSystem.Initialize();
+
 			while (_isRunning)
 			{
-				Input.[Friend]Update();
+				_inputSystem.Update();
+				
 				_window.Update();
 			}
 		}
@@ -51,47 +55,15 @@ namespace SteelEngine
 		// Gets called when an event occurs in the window
 		public void OnEvent(Event event)
 		{
+			_inputSystem.OnEvent(event);
+
 			var dispatcher = scope EventDispatcher(event);
 			dispatcher.Dispatch<WindowCloseEvent>(scope => OnWindowClose);
-			dispatcher.Dispatch<KeyPressedEvent>(scope => OnKeyPressed);
-			dispatcher.Dispatch<KeyReleasedEvent>(scope => OnKeyRelease);
-			dispatcher.Dispatch<MouseButtonPressedEvent>(scope => OnMouseButtonPressed);
-			dispatcher.Dispatch<MouseButtonReleasedEvent>(scope => OnMouseButtonReleased);
-
-			if (event.EventType == .WindowLostFocus)
-			{
-				Input.ResetInput();
-			}
 		}
 
 		private bool OnWindowClose(WindowCloseEvent event)
 		{
 			_isRunning = false;
-			return true;
-		}
-
-		private bool OnKeyPressed(KeyPressedEvent event)
-		{
-			Input.[Friend]KeyEvent(GLFWKeyMapper.MapKeyboardKey((.)event.KeyCode), .Down);
-			return true;
-		}
-
-		private bool OnKeyRelease(KeyReleasedEvent event)
-		{
-			Input.[Friend]KeyEvent(GLFWKeyMapper.MapKeyboardKey((.)event.KeyCode), .Up);
-			return true;
-		}
-
-		private bool OnMouseButtonPressed(MouseButtonPressedEvent event)
-		{
-			
-			Input.[Friend]KeyEvent(GLFWKeyMapper.MapMouseButton((.)event.Button), .Down);
-			return true;
-		}
-
-		private bool OnMouseButtonReleased(MouseButtonReleasedEvent event)
-		{
-			Input.[Friend]KeyEvent(GLFWKeyMapper.MapMouseButton((.)event.Button), .Up);
 			return true;
 		}
 
