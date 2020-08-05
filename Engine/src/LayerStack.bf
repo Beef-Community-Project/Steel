@@ -5,17 +5,30 @@ namespace SteelEngine
 {
 	public class LayerStack : IEnumerable<Layer>
 	{
-		private List<Layer> _layers = new .() ~ DeleteContainerAndItems!(_);
+		private List<Layer> _layers = new .();
 		private int _layerInsert = 0;
+
+		public ~this()
+		{
+			for (var layer in _layers)
+			{
+				layer.OnDetach();
+				delete layer;
+			}
+
+			delete _layers;
+		}
 
 		public void PushLayer(Layer layer)
 		{
 			_layers.Insert(_layerInsert++, layer);
+			layer.OnAttach();
 		}
 
-		public void PushOverlay(Layer overlay)
+		public void PushOverlay(Layer layer)
 		{
-			_layers.Add(overlay);
+			_layers.Add(layer);
+			layer.OnAttach();
 		}
 
 		public void PopLayer(StringView debugName = "")

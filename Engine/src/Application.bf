@@ -1,21 +1,27 @@
 using System;
 using SteelEngine.Window;
 using SteelEngine.Events;
+using glfw_beef;
 
 namespace SteelEngine
 {
 	public abstract class Application : IDisposable
 	{
+		public static Application Instance = null;
+
 		private bool _isRunning = false;
 
-		private Window _window ~ delete _;
+		public Window Window { get; protected set; }
 		private Window.EventCallback _eventCallback = new => OnEvent ~ delete _;
 
 		private LayerStack _layerStack = new .() ~ delete _;
 
+		private Glfw.ErrorCallback _errorCallback = new => OnGlfwError;
+
 		public this()
 		{
-			OnInit();
+			Instance = this;
+			Log.AddHandle(Console.Out);
 		}
 
 		public ~this()
@@ -28,28 +34,26 @@ namespace SteelEngine
 			_isRunning = true;
 
 			var windowConfig = WindowConfig(1080, 720, "SteelEngine");
-			_window = new Window(windowConfig, _eventCallback);
+			Window = new Window(windowConfig, _eventCallback);
+
+			OnInit();
+
+			Glfw.SetErrorCallback(_errorCallback, true);
 
 			while (_isRunning)
 			{
 				for (var layer in _layerStack)
 					layer.OnUpdate();
 
-				_window.Update();
+				Window.Update();
 			}
 		}
 
-		// Gets called right before the window is created
-		public virtual void OnInit()
-		{
-			Log.AddHandle(Console.Out);
-		}
+		// Gets called right after the window is created
+		public virtual void OnInit() {}
 
 		// Gets called when the window is destroyed
-		public virtual void OnCleanup()
-		{
-			_window.Destroy();
-		}
+		public virtual void OnCleanup() {}
 
 		// Gets called when an event occurs in the window
 		public void OnEvent(Event event)
@@ -65,6 +69,11 @@ namespace SteelEngine
 			}
 		}
 
+		private void OnGlfwError(Glfw.Error error)
+		{
+			Log.Error("(GLFW) {}", error);
+		}
+
 		private bool OnWindowClose(WindowCloseEvent event)
 		{
 			_isRunning = false;
@@ -74,6 +83,19 @@ namespace SteelEngine
 		public void Dispose()
 		{
 			OnCleanup();
+
+			Window.Destroy();
+			delete Window;
+		}
+
+		public void PushLayer(Layer layer)
+		{
+			_layerStack.PushLayer(layer);
+		}
+
+		public void PushOverlay(Layer layer)
+		{
+			_layerStack.PushOverlay(layer);
 		}
 	}
 }

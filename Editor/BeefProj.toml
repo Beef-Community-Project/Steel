@@ -1,6 +1,9 @@
 FileVersion = 1
-Dependencies = {corlib = "*", glfw-beef = "*", SteelEngine = "*"}
+Dependencies = {corlib = "*", SteelEngine = "*", imgui-beef = "*", imgui-impl-glfw = "*", imgui-impl-opengl3 = "*"}
 
 [Project]
 Name = "SteelEditor"
 StartupObject = "SteelEditor.Program"
+
+[Configs.Debug.Win64]
+BeefLibType = "DynamicDebug"
