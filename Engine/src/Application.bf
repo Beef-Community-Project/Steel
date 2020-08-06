@@ -19,6 +19,7 @@ namespace SteelEngine
 		private List<BaseSystem> _systems ~ delete _;
 		private Dictionary<ComponentId, BaseComponent> _components ~ delete _;
 		private List<BaseComponent> _componentsToDelete ~ delete _;
+		private List<EntityId> _entitiesToRemoveFromStore ~ delete _;
 		private GLFWInputManager _inputManager = new GLFWInputManager() ~ delete _;
 
 
@@ -101,6 +102,7 @@ namespace SteelEngine
 
 			_components = new Dictionary<ComponentId, BaseComponent>();
 			_componentsToDelete = new List<BaseComponent>();
+			_entitiesToRemoveFromStore = new List<EntityId>();
 
 			_systems = new List<BaseSystem>();
 			// The order of these systems will greatly affect the behavior of the engine.
@@ -120,19 +122,22 @@ namespace SteelEngine
 		{
 			_window.Destroy();
 
-			// Order of deletion is important. Deleting from highest to lowest abstraction is safe.
-			for (let system in _systems)
-			{
-				delete system;
-			}
-			for (let item in Entity.EntityStore)
-			{
-				delete item.value;
-			}
+			// Order of deletion is important. Deleting from lowest to highest abstraction is safe.
 			for (let item in _components)
 			{
 				delete item.value;
 			}
+			_components.Clear();
+			for (let item in Entity.EntityStore)
+			{
+				delete item.value;
+			}
+			Entity.EntityStore.Clear();
+			for (let system in _systems)
+			{
+				delete system;
+			}
+			_systems.Clear();
 		}
 
 		// Gets called when an event occurs in the window
@@ -156,6 +161,7 @@ namespace SteelEngine
 			_inputManager.Update();
 
 			DeleteQueuedComponents();
+			DeleteQueuedEntities();
 			for (let system in _systems)
 			{
 				system.[Friend]PreUpdate();
@@ -231,6 +237,19 @@ namespace SteelEngine
 			}
 		}
 
+		private void DeleteQueuedEntities()
+		{
+			for (let entityId in _entitiesToRemoveFromStore)
+			{
+				Entity entity = ?;
+				if (Entity.EntityStore.TryGetValue(entityId, out entity))
+				{
+					delete entity;
+					Entity.EntityStore.Remove(entityId);
+				}
+			}
+		}
+
 		private void QueueComponentForDeletion(BaseComponent component)
 		{
 			component.[Friend]IsQueuedForDeletion = true;
@@ -252,11 +271,12 @@ namespace SteelEngine
 			for (let item in _components)
 			{
 				let component = item.value;
-				if (component.Parent != null && component.Parent.Id == entity.Id)
+				if (component?.Parent != null && component.Parent.Id == entity.Id)
 				{
 					RemoveComponent(component);
 				}
 			}
+			_entitiesToRemoveFromStore.Add(entity.Id);
 			return true;
 		}
 	}

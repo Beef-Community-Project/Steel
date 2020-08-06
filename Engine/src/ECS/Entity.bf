@@ -78,7 +78,6 @@ namespace SteelEngine.ECS
 		public ~this()
 		{
 			App.[Friend]RemoveEntity(this);
-			Entity.EntityStore.Remove(Id);
 		}
 
 		static ~this()
