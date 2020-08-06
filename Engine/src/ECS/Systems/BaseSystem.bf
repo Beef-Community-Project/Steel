@@ -139,7 +139,12 @@ namespace SteelEngine.ECS.Systems
 			}
 			for (let entity in entitiesToRemove)
 			{
-				EntityToComponents.Remove(entity);
+				List<BaseComponent> components = ?;
+				if (EntityToComponents.TryGetValue(entity, out components))
+				{
+					delete components;
+					EntityToComponents.Remove(entity);
+				}
 			}
 		}
 
@@ -212,6 +217,12 @@ namespace SteelEngine.ECS.Systems
 
 		protected virtual void PreUpdate()
 		{
+			while (_entityRegistrationChecks.Count > 0)
+			{
+				let entity =  _entityRegistrationChecks.PopBack();
+				RefreshEntityRegistration(entity);
+			}
+
 			ClearEmptyEntities();
 		}
 
@@ -224,6 +235,7 @@ namespace SteelEngine.ECS.Systems
 			}
 
 			let componentsToRemove = new List<BaseComponent>();
+			defer delete componentsToRemove;
 			var valid = true;
 			// Check if every required Component is present
 			for (let type in _registeredTypes)
@@ -282,13 +294,6 @@ namespace SteelEngine.ECS.Systems
 				return;
 			}
 			InitializeComponents();
-
-			// Before running the update, check registration status of all components.
-			for (let entity in _entityRegistrationChecks)
-			{
-				RefreshEntityRegistration(entity);
-			}
-			_entityRegistrationChecks.Clear();
 
 			for (let item in EntityToComponents)
 			{

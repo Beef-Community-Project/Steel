@@ -91,7 +91,6 @@ namespace SteelEngine
 			{
 				Update(0f); // Should eventually send a delta representing the time between frames.
 				Draw();
-
 			}
 		}
 
@@ -156,7 +155,7 @@ namespace SteelEngine
 		{
 			_inputManager.Update();
 
-			//DeleteQueuedComponents();
+			DeleteQueuedComponents();
 			for (let system in _systems)
 			{
 				system.[Friend]PreUpdate();
