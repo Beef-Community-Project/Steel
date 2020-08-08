@@ -25,11 +25,11 @@ namespace SteelEditor
 			ImGui.CreateContext();
 
 			var style = ref ImGui.GetStyle();
-			style.WindowMenuButtonPosition = .None;
+			style.WindowMenuButtonPosition = .None; // This disables the collapse button on windows
 			ImGui.StyleColorsClassic(&style);
 
 			ImGuiImplGlfw.InitForOpenGL(_window.GetHandle, false);
-			ImGuiImplOpengl3.ImGui_ImplOpenGL3_Init(=> Glfw.GetProcAddress);
+			ImGuiImplOpengl3.Init(=> Glfw.GetProcAddress);
 
 			Log.Trace("OpenGL version: {}", ImGuiImplOpengl3.[Friend]g_GlVersion);
 			Log.Trace("GLSL version: {}", ImGuiImplOpengl3.[Friend]g_GlslVersionString);
@@ -45,7 +45,8 @@ namespace SteelEditor
 
 			delete _editorWindows;
 
-			ImGuiImplOpengl3.ImGui_ImplOpenGL3_Shutdown();
+			ImGuiImplOpengl3.Shutdown();
+			ImGuiImplGlfw.Shutdown();
 			ImGui.DestroyContext();
 		}
 
@@ -54,7 +55,7 @@ namespace SteelEditor
 			var io = ref ImGui.GetIO();
 			var app = Application.Instance;
 			io.DisplaySize = ImGui.Vec2(app.Window.GetSize.X, app.Window.GetSize.Y);
-			ImGuiImplOpengl3.ImGui_ImplOpenGL3_NewFrame();
+			ImGuiImplOpengl3.NewFrame();
 			ImGuiImplGlfw.NewFrame();
 			ImGui.NewFrame();
 
@@ -63,6 +64,7 @@ namespace SteelEditor
 			io.DeltaTime = _time > 0.0f ? (time - _time) : (1.0f / 60.0f);
 			_time = time;
 
+			// Update ImGui windows
 			for (var editorWindow in _editorWindows)
 			{
 				if (editorWindow.IsActive)
@@ -71,10 +73,13 @@ namespace SteelEditor
 					CloseWindow(editorWindow);
 			}
 
-			ImGui.Render();
+			// Background color
 			ImGuiImplOpengl3GL.glClearColor(0.45f, 0.55f, 0.60f, 1.00f);
 			ImGuiImplOpengl3GL.glClear(ImGuiImplOpengl3GL.GL_COLOR_BUFFER_BIT);
-			ImGuiImplOpengl3.ImGui_ImplOpenGL3_RenderDrawData(ImGui.GetDrawData());
+
+			// ImGui rendering
+			ImGui.Render();
+			ImGuiImplOpengl3.RenderDrawData(ImGui.GetDrawData());
 		}
 
 		public override void OnEvent(Event event)

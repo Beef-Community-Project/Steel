@@ -14,7 +14,7 @@ namespace SteelEngine
 		public Window Window { get; protected set; }
 		private Window.EventCallback _eventCallback = new => OnEvent ~ delete _;
 
-		private LayerStack _layerStack = new .() ~ delete _;
+		private LayerStack _layerStack = new .();
 
 		private Glfw.ErrorCallback _errorCallback = new => OnGlfwError;
 
@@ -93,6 +93,7 @@ namespace SteelEngine
 		public void Dispose()
 		{
 			OnCleanup();
+			delete _layerStack;
 
 			Window.Destroy();
 			delete Window;
@@ -106,6 +107,11 @@ namespace SteelEngine
 		public void PushOverlay(Layer layer)
 		{
 			_layerStack.PushOverlay(layer);
+		}
+
+		public static T GetInstance<T>() where T : Application
+		{
+			return (T) Instance;
 		}
 	}
 }

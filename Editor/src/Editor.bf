@@ -1,3 +1,4 @@
+using System;
 using SteelEngine;
 using SteelEngine.Window;
 using imgui_beef;
@@ -13,19 +14,19 @@ namespace SteelEditor
 			_imGuiLayer = new .(Window);
 			PushOverlay(_imGuiLayer);
 
-			// SpawnWindow<TestWindow>();
+			SpawnWindow<TestWindow>();
 		}
 
 		public override void OnCleanup()
 		{
-			
+			delete _imGuiLayer;
 		}
 
-		public void SpawnWindow<T>() where T : EditorWindow
+		public static void SpawnWindow<T>() where T : EditorWindow
 		{
 			var window = new T();
 			window.OnInit();
-			_imGuiLayer.AddWindow(window);
+			GetInstance<Editor>()._imGuiLayer.AddWindow(window);
 		}
 	}
 }
