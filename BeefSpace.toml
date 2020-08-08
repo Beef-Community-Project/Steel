@@ -1,5 +1,5 @@
 FileVersion = 1
-Projects = {SteelEngine = {Path = "Engine"}, SteelEditor = {Path = "Editor"}, glfw-beef = {Path = "Libs/GLFW"}, imgui-beef = {Path = "Libs/ImGui/imgui-beef"}, imgui-impl-glfw = {Path = "Libs/ImGui/imgui-impl-glfw"}, imgui-impl-opengl3 = {Path = "Libs/ImGui/imgui-impl-opengl3"}}
+Projects = {SteelEngine = {Path = "Engine"}, SteelEditor = {Path = "Editor"}, glfw-beef = {Path = "Libs/GLFW"}, imgui-impl-opengl3 = {Path = "TestLibs/imgui/imgui-impl-opengl3"}, imgui-impl-glfw = {Path = "TestLibs/imgui/imgui-impl-glfw"}, imgui-beef = {Path = "TestLibs/imgui/imgui-beef"}}
 
 [Workspace]
 StartupProject = "SteelEditor"

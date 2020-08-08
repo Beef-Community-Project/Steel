@@ -12,11 +12,20 @@ namespace SteelEditor
 		{
 			_imGuiLayer = new .(Window);
 			PushOverlay(_imGuiLayer);
+
+			// SpawnWindow<TestWindow>();
 		}
 
 		public override void OnCleanup()
 		{
 			
+		}
+
+		public void SpawnWindow<T>() where T : EditorWindow
+		{
+			var window = new T();
+			window.OnInit();
+			_imGuiLayer.AddWindow(window);
 		}
 	}
 }

@@ -33,7 +33,17 @@ namespace SteelEngine
 		{
 			_isRunning = true;
 
-			var windowConfig = WindowConfig(1080, 720, "SteelEngine");
+			var windowConfig = WindowConfig(
+				1080,          // Width
+				720,           // Height
+				"SteelEngine", // Title
+				false,         // Undecorated
+				true,          // Resizable
+				false,         // VSync
+				false,         // Maximized
+				false          // Invisible
+			);
+
 			Window = new Window(windowConfig, _eventCallback);
 
 			OnInit();
