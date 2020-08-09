@@ -13,13 +13,13 @@ namespace SteelEditor
 		{
 			_imGuiLayer = new .(Window);
 			PushOverlay(_imGuiLayer);
-
+			
 			SpawnWindow<TestWindow>();
 		}
 
 		public override void OnCleanup()
 		{
-			delete _imGuiLayer;
+			
 		}
 
 		public static void SpawnWindow<T>() where T : EditorWindow

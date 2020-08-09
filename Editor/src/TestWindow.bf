@@ -9,10 +9,9 @@ namespace SteelEditor
 
 		private bool _isChecked = false;
 
-		public override void OnInit()
-		{
-			Log.Trace("OnInit()");
-		}
+		private String _previousTextInput = new String() ~ delete _;
+
+		private int _intInput = 0;
 
 		public override void OnRender()
 		{
@@ -24,11 +23,17 @@ namespace SteelEditor
 			_isChecked = EditorGUI.Checkbox("Checkbox", _isChecked);
 
 			EditorGUI.LabelText("Value: ", "{}", _isChecked);
-		}
 
-		public override void OnClose()
-		{
-			Log.Trace("OnClose()");
+			String textInput = scope String();
+			EditorGUI.InputText("InputText", textInput);
+			if (textInput != _previousTextInput)
+			{
+				Log.Trace("Input: {}", textInput);
+				_previousTextInput.Set(textInput);
+			}
+
+			#unwarn
+			EditorGUI.InputInt("InputInt", ref _intInput);
 		}
 	}
 }

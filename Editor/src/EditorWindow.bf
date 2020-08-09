@@ -1,5 +1,6 @@
 using System;
 using imgui_beef;
+using SteelEngine;
 
 namespace SteelEditor
 {
@@ -24,8 +25,8 @@ namespace SteelEditor
 			ImGui.End();
 		}
 
-		public virtual void OnInit() {}
+		public virtual void OnInit() { Log.Trace("Creating window ({})", Title); }
 		public virtual void OnRender() {}
-		public virtual void OnClose() {}
+		public virtual void OnClose() { Log.Trace("Closing window ({})", Title); }
 	}
 }

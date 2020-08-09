@@ -9,9 +9,8 @@ namespace SteelEngine.ECS.Systems
 	/// </summary>
 	public abstract class BaseSystem
 	{
-		protected this(Application app)
+		protected this()
 		{
-			App = app;
 			IsEnabled = true;
 			EntityToComponents = new Dictionary<EntityId, List<BaseComponent>>();
 			_uninitializedComponents = new Queue<BaseComponent>();
@@ -19,8 +18,6 @@ namespace SteelEngine.ECS.Systems
 
 			RegisterComponentTypes();
 		}
-
-		public Application App { get; protected set; }
 
 		/// <summary>
 		/// All tracked components.

@@ -6,7 +6,7 @@ namespace SteelEngine.ECS.Systems
 {
 	public class BehaviorSystem : BaseSystem
 	{
-		public this(Application app) : base(app) {}
+		public this() : base() {}
 
 		protected override void RegisterComponentTypes()
 		{

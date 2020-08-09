@@ -6,8 +6,6 @@ namespace SteelEngine.ECS.Systems
 {
 	public class RenderSpriteSystem : BaseSystem
 	{
-		public this(Application app) : base(app) {}
-
 		protected override void RegisterComponentTypes()
 		{
 			_registeredTypes = new Type[]{ typeof(SpriteComponent), typeof(TransformComponent) };

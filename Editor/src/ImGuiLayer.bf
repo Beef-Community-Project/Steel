@@ -28,7 +28,7 @@ namespace SteelEditor
 			style.WindowMenuButtonPosition = .None; // This disables the collapse button on windows
 			ImGui.StyleColorsClassic(&style);
 
-			ImGuiImplGlfw.InitForOpenGL(_window.GetHandle, false);
+			ImGuiImplGlfw.InitForOpenGL(_window.GetHandle, true);
 			ImGuiImplOpengl3.Init(=> Glfw.GetProcAddress);
 
 			Log.Trace("OpenGL version: {}", ImGuiImplOpengl3.[Friend]g_GlVersion);
