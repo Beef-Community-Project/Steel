@@ -3,9 +3,33 @@ using System;
 namespace SteelEngine.Math
 {
 	[CRepr]
-	public struct Vector2_t<T> : IHashable where T :  IHashable
+	public struct Vector2_t<T> : IHashable where T : IHashable
 	{
 		public T[2] data;
+
+		// Creates a new Vector with default values
+		public this()
+		{
+			data = default;
+		}
+
+		// Creates a new Vector and sets all components to v
+		public this(T v)
+		{
+		 	data = T[](v, v);
+		}
+
+		// Creates a new Vector with given x, y components
+		public this(T x, T y)
+		{
+			data = T[](x, y);
+		}
+
+		// Creates a new Vector with given array (0 = x, 1 = y)
+		public this(T[2] values)
+		{
+			data = values;
+		}
 
 		public T x
 		{
@@ -22,26 +46,6 @@ namespace SteelEngine.Math
 		{
 			[Inline] get { return data[i]; }
 			[Inline] set mut { data[i] = value; }
-		}
-
-		public this()
-		{
-			data = default;
-		}
-
-		public this(T x)
-		{
-		 	data = T[](x, default);
-		}
-
-		public this(T x, T y)
-		{
-			data = T[](x, y);
-		}
-
-		public this(T[2] values)
-		{
-			data = values;
 		}
 
 		public static bool operator ==(Self v1, Self v2)
@@ -69,7 +73,7 @@ namespace SteelEngine.Math
 		}
 	}
 
-	public extension Vector2_t<T> where T : var, IOpAddable
+	public extension Vector2_t<T> where T : operator implicit int
 	{
 		public static Self Zero => .(0, 0);
 		public static Self One => .(1, 1);
@@ -80,42 +84,24 @@ namespace SteelEngine.Math
 		public static Self Down => .(0, -1);
 	}
 
-	public extension Vector2_t<T> where T : var, Float
+	public extension Vector2_t<T>
+		where T : operator implicit float
+		where float : operator implicit T
 	{
-		public static Self PositiveInfinity => .(T.PositiveInfinity, T.PositiveInfinity);
-		public static Self NegativeInfinity => .(T.NegativeInfinity, T.NegativeInfinity);
+		public static Self PositiveInfinity => .(float.PositiveInfinity, float.PositiveInfinity);
+		public static Self NegativeInfinity => .(float.NegativeInfinity, float.NegativeInfinity);
 	}
 
-	public extension Vector2_t<T> where T : var, Double
+	public extension Vector2_t<T>
+		where T : operator implicit double
+		where double : operator implicit T
 	{
-		public static Self PositiveInfinity => .(T.PositiveInfinity, T.PositiveInfinity);
-		public static Self NegativeInfinity => .(T.NegativeInfinity, T.NegativeInfinity);
+		public static Self PositiveInfinity => .(double.PositiveInfinity, double.PositiveInfinity);
+		public static Self NegativeInfinity => .(double.NegativeInfinity, double.NegativeInfinity);
 	}
 
-	public extension Vector2_t<T> where T : IOpAddable, IOpSubtractable, IOpMultiplicable, IOpDividable, IOpNegatable
+	public extension Vector2_t<T> where T : operator T + T, operator T - T, operator T * T, operator T / T, operator -T
 	{
-		// These 4 methods are here because in generic var context the compiler sometimes can't figure out which operator overload to use
-		// @TODO(fusion) : remove once the issue is fixed
-		public static Self Add(Self v1, Self v2)
-		{
-			return .(v1.x + v2.x, v1.y + v2.y);
-		}
-
-		public static Self Subtract(Self v1, Self v2)
-		{
-			return .(v1.x - v2.x, v1.y - v2.y);
-		}
-
-		public static Self Multiply(Self v1, Self v2)
-		{
-			return .(v1.x * v2.x, v1.y * v2.y);
-		}
-
-		public static Self Divide(Self v1, Self v2)
-		{
-			return .(v1.x / v2.x, v1.y / v2.y);
-		}
-
 		public void operator+=(Self rv) mut
 		{
 			x += rv.x;
@@ -133,6 +119,7 @@ namespace SteelEngine.Math
 			y += rv;
 		}
 
+		[Commutable]
 		public static Self operator+(Self lv, T rv)
 		{
 			return .(lv.x + rv, lv.y + rv);
@@ -160,6 +147,7 @@ namespace SteelEngine.Math
 			y -= rv;
 		}
 
+		[Commutable]
 		public static Self operator-(Self lv, T rv)
 		{
 			return .(lv.x - rv, lv.y - rv);
@@ -182,6 +170,7 @@ namespace SteelEngine.Math
 			y *= rv;
 		}
 
+		[Commutable]
 		public static Self operator*(Self lv, T rv)
 		{
 			return .(lv.x * rv, lv.y * rv);
@@ -204,6 +193,7 @@ namespace SteelEngine.Math
 			y *= rv;
 		}
 
+		[Commutable]
 		public static Self operator/(Self lv, T rv)
 		{
 			return .(lv.x / rv, lv.y / rv);
@@ -215,7 +205,7 @@ namespace SteelEngine.Math
 		public T LengthSquared=> x * x + y * y;
 
 		/// <returns>
-		/// Returns the distance between vectors
+		/// Squared distance between two vectors
 		/// </returns>
 		public static T DistanceSquared(Self v1, Self v2)
 		{
@@ -224,28 +214,20 @@ namespace SteelEngine.Math
 
 	}
 
-	public extension Vector2_t<T> where T : var, IFloating, IOpAddable, IOpSubtractable, IOpMultiplicable, IOpDividable
+	public extension Vector2_t<T> 
+		where T : operator T * T, operator T + T, operator T - T, operator T / T, operator -T, operator implicit float, operator explicit double
+		where int : operator T <=> T
+		where double : operator implicit T
 	{
 		/// <returns>
-		/// Magnitude of vector
+		///	Magnitude of vector
 		/// </returns>
-		public T Length=> System.Math.Sqrt(LengthSquared);
+		public T Length => (T)System.Math.Sqrt(LengthSquared);
 
-		/// <returns>
-		/// Unsigned angle in radians between vectors
-		/// </returns>
-		public static T Angle(Self v1, Self v2)
-		{
-			return Math.Acos(Self.DotProduct(v1, v2) / (v1.Length * v2.Length));
-		}
-	}
-
-	public extension Vector2_t<T> where T : IFloating, IOpAddable, IOpSubtractable, IOpMultiplicable, IOpDividable, IOpNegatable
-	{
 		/// <summary>
 		/// Makes this vector have a magnitude of 1
 		/// </summary>
-		public T Normalize()	mut
+		public T Normalize() mut
 		{
 			let length = Length;
 			let factor = 1 / length;
@@ -266,6 +248,40 @@ namespace SteelEngine.Math
 			}
 		}
 
+		/// <returns>
+		/// Unsigned angle in radians between vectors
+		/// </returns>
+		public static T Angle(Self v1, Self v2)
+		{
+			let div = (v1.Length * v2.Length);
+			// div can be 0 so we need to make sure we are not dividing by zero
+			if(div == 0) return 0;
+			let cosVal = DotProduct(v1, v2) / div;
+			// if cosVal > 1 the Acos will return NaN
+			return (T)(cosVal > (T)1 ? 0 : Math.Acos(cosVal));
+		}
+
+		/// <returns>
+		/// Distance between two vectors
+		/// </returns>
+		public static T Distance(Self v1, Self v2)
+		{
+			return (v1 - v2).Length;
+		}
+
+		/// <returns>
+		/// Vector with magnitude clamped to value
+		/// </returns>
+		public static Self ClampMagnitude(Self v, T value)
+		{
+			let length = v.Length;
+			let factor = value / length;
+			return .(v.x * factor, v.y * factor);
+		}
+	}
+
+	public extension Vector2_t<T> where T : operator T + T, operator T - T, operator T * T, operator T / T, operator -T
+	{
 		/// <summary>
 		///	Linearly interpolates between vectors by value
 		/// </summary>
@@ -284,15 +300,6 @@ namespace SteelEngine.Math
 		{
 			return v1.x * v2.x + v1.y * v2.y;
 		}
-
-		/// <returns>
-		/// Distance between vectors
-		/// </returns>
-		public static T Distance(Self v1, Self v2)
-		{
-			return (v1 - v2).Length;
-		}
-
 	}
 
 }

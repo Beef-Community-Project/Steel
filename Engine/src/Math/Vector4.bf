@@ -7,6 +7,51 @@ namespace SteelEngine.Math
 	{
 		public T[4] data;
 
+		// Creates a new Vector with default values
+		public this()
+		{
+			data = default;
+		}
+		// Creates a new Vector and sets all components to v
+		public this(T v)
+		{
+			data = .(v, v, v, v);
+		}
+
+		// Creates a new Vector with given x, y components and sets z and w to default
+		public this(T x, T y)
+		{
+			data = .(x, y, default, default);
+		}
+
+		// Creates a new Vector with given x, y, z components and sets w to zero
+		public this(T x, T y, T z)
+		{
+			data = .(x, y, z, default);
+		}
+
+		// Creates a new Vector with given x, y, z components
+		public this(T x, T y, T z, T w)
+		{
+			data = .(x, y, z, w);
+		}
+
+		// Creates a new Vector with given array (0 = x, 1 = y, 2 = z, 3 = w)
+		public this(T[4] values)
+		{
+			data = values;
+		}
+
+		public this(Vector2_t<T> vec2, T z, T w)
+		{
+			data = .(vec2.x, vec2.y, z, w);
+		}
+
+		public this(Vector3_t<T> vec3, T w)
+		{
+			data = .(vec3.x, vec3.y, vec3.z, w);
+		}
+
 		public T x
 		{
 			[Inline] get { return data[0]; } 
@@ -39,26 +84,6 @@ namespace SteelEngine.Math
 
 		public Vector3_t<T> xyz => .(x,y,z);
 
-		public this()
-		{
-			data = default;
-		}
-
-		public this(Vector3_t<T> vec3, T w)
-		{
-			data = .(vec3.x, vec3.y, vec3.z, w);
-		}
-
-		public this(T x, T y, T z, T w)
-		{
-			data = .(x, y, z, w);
-		}
-
-		public this(T[4] values)
-		{
-			data = values;
-		}
-
 		public static bool operator ==(Self v1, Self v2)
 		{
 		    return (v1.x == v2.x) &&
@@ -88,49 +113,31 @@ namespace SteelEngine.Math
 		}
 	}
 
-	public extension Vector4_t<T> where T : var, IOpAddable
+	public extension Vector4_t<T> where T : operator implicit float
 	{
 		public static Self Zero=> .(0, 0, 0, 0);
 		public static Self One=> .(1, 1, 1, 1);
 	}
 
-	public extension Vector4_t<T> where T : var, Float
+	public extension Vector4_t<T>
+		where T : operator implicit float
+		where float : operator implicit T
 	{
-		public static Self PositiveInfinity => .(T.PositiveInfinity, T.PositiveInfinity, T.PositiveInfinity, T.PositiveInfinity);
-		public static Self NegativeInfinity => .(T.NegativeInfinity, T.NegativeInfinity, T.NegativeInfinity, T.NegativeInfinity);
+		public static Self PositiveInfinity => .(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity);
+		public static Self NegativeInfinity => .(float.NegativeInfinity, float.NegativeInfinity, float.NegativeInfinity, float.NegativeInfinity);
 	}
 
-	public extension Vector4_t<T> where T : var, Double
+	public extension Vector4_t<T> 
+		where T : operator implicit double
+		where double : operator implicit T
 	{
-		public static Self PositiveInfinity => .(T.PositiveInfinity, T.PositiveInfinity, T.PositiveInfinity, T.PositiveInfinity);
-		public static Self NegativeInfinity => .(T.NegativeInfinity, T.NegativeInfinity, T.NegativeInfinity, T.NegativeInfinity);
+		public static Self PositiveInfinity => .(double.PositiveInfinity, double.PositiveInfinity, double.PositiveInfinity, double.PositiveInfinity);
+		public static Self NegativeInfinity => .(double.NegativeInfinity, double.NegativeInfinity, double.NegativeInfinity, double.NegativeInfinity);
 	}
 
 
-	public extension Vector4_t<T> where T : IOpAddable, IOpSubtractable, IOpMultiplicable, IOpDividable, IOpNegatable
+	public extension Vector4_t<T> where T : operator T + T, operator T - T, operator T * T, operator T / T, operator -T
 	{
-		// These 4 methods are here because in generic var context the compiler sometimes can't figure out which operator overload to use
-		// @TODO(fusion) : remove once the issue is fixed
-		public static Self Add(Self v1, Self v2)
-		{
-			return .(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z, v1.w + v2.w);
-		}
-
-		public static Self Subtract(Self v1, Self v2)
-		{
-			return .(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z, v1.w - v2.w);
-		}
-
-		public static Self Multiply(Self v1, Self v2)
-		{
-			return .(v1.x * v2.x, v1.y * v2.y, v1.z * v2.z, v1.w * v2.w);
-		}
-
-		public static Self Divide(Self v1, Self v2)
-		{
-			return .(v1.x / v2.x, v1.y / v2.y, v1.z / v2.z, v1.w / v2.w);
-		}
-
 		public void operator+=(Self rv) mut
 		{
 			x += rv.x;
@@ -246,7 +253,7 @@ namespace SteelEngine.Math
 		public T LengthSquared=> x * x + y * y + z * z + w * w;
 
 		/// <returns>
-		/// Returns the distance between vectors
+		/// Squared distance between two vectors
 		/// </returns>
 		public static T DistanceSquared(Self v1, Self v2)
 		{
@@ -255,24 +262,16 @@ namespace SteelEngine.Math
 
 	}
 
-	public extension Vector4_t<T> where T : var, IFloating, IOpAddable, IOpSubtractable, IOpMultiplicable, IOpDividable
+	public extension Vector4_t<T> 
+		where T : operator T * T, operator T + T, operator T - T, operator T / T, operator -T, operator implicit float, operator explicit double
+		where int : operator T <=> T
+		where double : operator implicit T
 	{
 		/// <returns>
 		/// Magnitude of vector
 		/// </returns>
-		public T Length=> System.Math.Sqrt(LengthSquared);
+		public T Length => (T)System.Math.Sqrt(LengthSquared);
 
-		/// <returns>
-		/// Unsigned angle in radians between vectors
-		/// </returns>
-		public static T Angle(Self v1, Self v2)
-		{
-			return Math.Acos(Self.DotProduct(v1, v2) / (v1.Length * v2.Length));
-		}
-	}
-
-	public extension Vector4_t<T> where T : IFloating, IOpAddable, IOpSubtractable, IOpMultiplicable, IOpDividable, IOpNegatable
-	{
 		/// <returns>
 		/// Distance between vectors
 		/// </returns>
@@ -284,7 +283,7 @@ namespace SteelEngine.Math
 		/// <summary>
 		/// Makes this vector have a magnitude of 1
 		/// </summary>
-		public T Normalize()	mut
+		public T Normalize() mut
 		{
 			let length = Length;
 			let factor = 1 / length;
@@ -307,6 +306,32 @@ namespace SteelEngine.Math
 			}
 		}
 
+		/// <returns>
+		/// Unsigned angle in radians between vectors
+		/// </returns>
+		public static T Angle(Self v1, Self v2)
+		{
+			let div = (v1.Length * v2.Length);
+			// div can be 0 so we need to make sure we are not dividing by zero
+			if(div == 0) return 0;
+			let cosVal = DotProduct(v1, v2) / div;
+			// cosVal > 1 the Acos will return NaN
+			return (T)(cosVal > 1 ? 0 : Math.Acos(cosVal));
+		}
+
+		/// <returns>
+		/// Vector with magnitude clamped to value
+		/// </returns>
+		public static Self ClampMagnitude(Self v, T value)
+		{
+			let length = v.Length;
+			let factor = value / length;
+			return .(v.x * factor, v.y * factor, v.z * factor, v.w * factor);
+		}
+	}
+
+	public extension Vector4_t<T> where T : operator T + T, operator T - T, operator T * T, operator -T
+	{
 		/// <summary>
 		///	Linearly interpolates between vectors by value
 		/// </summary>
@@ -325,7 +350,6 @@ namespace SteelEngine.Math
 		{
 			return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z + v1.w * v2.w;
 		}
-
 	}
 
 }

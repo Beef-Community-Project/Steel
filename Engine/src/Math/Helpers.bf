@@ -10,15 +10,25 @@ namespace SteelEngine.Math
 			hash += 0x9e3779b9 + (seed << 6) + (seed >> 2);
 			seed ^= hash;
 		}
+
 	}
 
 	public static
 	{
-		static mixin Deg2Rad(var deg)
+		public static mixin Deg2Rad(float deg)
 		{
-			deg / 180 * System.Math.PI_d
+			deg / 180 * System.Math.PI_f
 		}
-		static mixin Rad2Deg(var rad)
+		public static mixin Rad2Deg(float rad)
+		{
+			rad / System.Math.PI_d * 180
+		}
+
+		public static mixin Deg2Rad(double deg)
+		{
+			deg / 180 * System.Math.PI_f
+		}
+		public static mixin Rad2Deg(double rad)
 		{
 			rad / System.Math.PI_d * 180
 		}

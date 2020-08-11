@@ -2,42 +2,8 @@ using System;
 
 namespace SteelEngine.Math
 {
-	[CRepr, Union]
-	public struct Quaternion_t<T> where T : var, IHashable, IFloating, IOpNegatable
+	public struct Quaternion_t<T> : Vector4_t<T> where T : IHashable
 	{
-		Vector3_t<T> _v;
-		public T[4] data;
-
-		public T x
-		{
-			[Inline] get { return data[0]; } 
-			[Inline] set mut { data[0] = value; }
-		}
-
-		public T y
-		{
-			[Inline] get { return data[1]; }
-			[Inline] set mut { data[1] = value; }
-		}
-
-		public T z
-		{
-			[Inline] get { return data[2]; }
-			[Inline] set mut { data[2] = value; }
-		}
-
-		public T w
-		{
-			[Inline] get { return data[3]; }
-			[Inline] set mut { data[3] = value; }
-		}
-
-		public T this[int i]
-		{
-			[Inline] get { return data[i]; }
-			[Inline] set mut { data[i] = value; }
-		}
-
 		public this()
 		{
 			data = default;
@@ -57,49 +23,51 @@ namespace SteelEngine.Math
 		{
 			data = .(v.x, v.y, v.z, w);
 		}
+	}
 
-		public static bool operator ==(Self v1, Self v2)
-		{
-		    return (v1.x == v2.x) &&
-		        (v1.y == v2.y) &&
-		        (v1.z == v2.z) &&
-				(v1.w == v2.w);
-		}
-
-		public static bool operator !=(Self v1, Self v2)
-		{
-		    return !(v1 == v2);
-		}
-
-		public override void ToString(String str)
-		{
-		    str.AppendF("{0:0.0#}, {1:0.0#}, {2:0.0#}, {3:0.0#}", x, y, z, w);
-		}
-
-		public int GetHashCode()
-		{
-			int seed = 0;
-			Helpers.HashCombine(ref seed, x.GetHashCode());
-			Helpers.HashCombine(ref seed, y.GetHashCode());
-			Helpers.HashCombine(ref seed, z.GetHashCode());
-			Helpers.HashCombine(ref seed, w.GetHashCode());
-			return seed;
-		}
-
+	public extension Quaternion_t<T> 
+		where T : operator T * T, operator T + T, operator T - T, operator T / T, operator -T, operator implicit float, operator explicit double
+		where int : operator T <=> T
+		where double : operator implicit T
+	{
 		public static Self Identity => .(1, 0, 0, 0);
 
-		public T Normalize() mut
+		[Error("Not implemented")]
+		public static Self LookAt(Vector3_t<T> forward, Vector3_t<T> up)
 		{
-			let length = Math.Sqrt(x*x + y*y + z*y + w*w);
-			let scale = 1 / length;
-			x *= scale;
-			y *= scale;
-			z *= scale;
-			w *= scale;
-			return length;
+			// @TODO(fusion)
+			//Matrix33_t<T>.LookAt(forward, up);
+			return default;//FromMatrix(Matrix33_t<T>());
 		}
 
-		public Self Normalized
+		public void operator+=(Self rv) mut
+		{
+			x += rv.x;
+			y += rv.y;
+			z += rv.z;
+			w += rv.w;
+		}
+
+		public static Self operator+(Self lv, Self rv)
+		{
+			return .(lv.x + rv.x, lv.y + rv.y, lv.z + rv.z, lv.z + rv.z);
+		}
+
+		public static Self operator*(Self lv, Self rv)
+		{
+			let w = lv.w * rv.w - Vector3_t<T>.DotProduct(lv.xyz, rv.xyz);
+			let v = lv.w * rv.xyz + rv.w * lv.xyz + Vector3_t<T>.CrossProduct(lv.xyz, rv.xyz);
+			return .(v, w);
+		}
+
+		 public static Vector3_t<T> operator*(Self lv, Vector3_t<T> rv)
+		 {
+		 	T ww = lv.w + lv.w;
+		 	return ww * Vector3_t<T>.CrossProduct(lv.xyz, rv) + (ww * lv.w - 1) * rv +
+		 	       2 * Vector3_t<T>.DotProduct(lv.xyz, rv) * lv.w;
+		 }
+
+		public new Self Normalized
 		{
 			[Inline]
 			get
@@ -143,13 +111,13 @@ namespace SteelEngine.Math
 				  return .(
 				      0,
 				      m[2] < 0 ? (T)(0.5 * Math.PI_d) : (T)(-0.5 * Math.PI_d),
-				      -Math.Atan2(m[3], m[4]));
+				      (T)-Math.Atan2(m[3], m[4]));
 				}
 				else
 				{
-				  return .(Math.Atan2(m[5], m[8]),
-	                      Math.Atan2(-m[2], Math.Sqrt(cos2)),
-	                      Math.Atan2(m[1], m[0]));
+				  return .((T)Math.Atan2(m[5], m[8]),
+		                  (T)Math.Atan2(-m[2], (T)Math.Sqrt(cos2)),
+		                  (T)Math.Atan2(m[1], m[0]));
 				}
 			}
 		}
@@ -164,9 +132,9 @@ namespace SteelEngine.Math
 		{
 			get
 			{
-				Vector3_t<T> axis = .(x,  y, z);
+				Vector3_t<T> axis = xyz;
 				let axisLength = axis.Normalize();
-				T angle = 2 * Math.Atan2(axisLength, w);
+				T angle = 2 * (T)Math.Atan2(axisLength, w);
 				if (axisLength == 0)
 				{
 					// If angle = 0 and 360. All axes are correct
@@ -182,16 +150,16 @@ namespace SteelEngine.Math
 		public static Self FromEulerAngles(T xRotation, T yRotation, T zRotation)
 		{
 			Vector3_t<T> halfAngles = .((T)(0.5) * xRotation, (T)(0.5) * yRotation, (T)(0.5) * zRotation);
-			let sinx = Math.Sin(halfAngles[0]);
-			let cosx = Math.Cos(halfAngles[0]);
-			let siny = Math.Sin(halfAngles[1]);
-			let cosy = Math.Cos(halfAngles[1]);
-			let sinz = Math.Sin(halfAngles[2]);
-			let cosz = Math.Cos(halfAngles[2]);
-			return .(cosx * cosy * cosz + sinx * siny * sinz,
-					sinx * cosy * cosz - cosx * siny * sinz,
+			let sinx = (T)Math.Sin(halfAngles[0]);
+			let cosx = (T)Math.Cos(halfAngles[0]);
+			let siny = (T)Math.Sin(halfAngles[1]);
+			let cosy = (T)Math.Cos(halfAngles[1]);
+			let sinz = (T)Math.Sin(halfAngles[2]);
+			let cosz = (T)Math.Cos(halfAngles[2]);
+			return .(sinx * cosy * cosz - cosx * siny * sinz,
 					cosx * siny * cosz + sinx * cosy * sinz,
-					cosx * cosy * sinz - sinx * siny * cosz);
+					cosx * cosy * sinz - sinx * siny * cosz,
+					cosx * cosy * cosz + sinx * siny * sinz);
 		}
 
 		/// <summary>
@@ -207,29 +175,29 @@ namespace SteelEngine.Math
 		/// Create quaternion from rotation matrix
 		/// </summary>
 		public static Self FromMatrix(Matrix33_t<T> m)
- 		{
+		{
 			let trace = m[0, 0] + m[1, 1]+ m[2, 2];
 			if (trace > 0)
 			{
-				let s = Math.Sqrt(trace + 1) * 2;
+				let s = (T)Math.Sqrt(trace + 1) * 2;
 				let oneOverS = 1 / s;
 				return .((T)(0.25) * s, (m[5] - m[7]) * oneOverS, (m[6] - m[2]) * oneOverS, (m[1] - m[3]) * oneOverS);
 			}
 			else if (m[0] > m[4] && m[0] > m[8])
 			{
-				let s = Math.Sqrt(m[0] - m[4] - m[8] + 1) * 2;
+				let s = (T)Math.Sqrt(m[0] - m[4] - m[8] + 1) * 2;
 				let oneOverS = 1 / s;
 				return .((m[5] - m[7]) * oneOverS, (T)(0.25) * s, (m[3] + m[1]) * oneOverS, (m[6] + m[2]) * oneOverS);
 			}
 			else if (m[4] > m[8])
 			{
-				let s = Math.Sqrt(m[4] - m[0] - m[8] + 1) * 2;
+				let s = (T)Math.Sqrt(m[4] - m[0] - m[8] + 1) * 2;
 				let oneOverS = 1 / s;
 				return .((m[6] - m[2]) * oneOverS, (m[3] + m[1]) * oneOverS, (T)(0.25) * s, (m[5] + m[7]) * oneOverS);
 			}
 			else
 			{
-				let s = Math.Sqrt(m[8] - m[0] - m[4] + 1) * 2;
+				let s = (T)Math.Sqrt(m[8] - m[0] - m[4] + 1) * 2;
 				let oneOverS = 1 / s;
 				return .((m[1] - m[3]) * oneOverS, (m[6] + m[2]) * oneOverS, (m[5] + m[7]) * oneOverS, (T)(0.25) * s);
 			}
@@ -243,25 +211,25 @@ namespace SteelEngine.Math
 			let trace = m[0, 0] + m[1, 1] + m[2, 2];
 			if (trace > 0)
 			{
-				let s = Math.Sqrt(trace + 1) * 2;
+				let s = (T)Math.Sqrt(trace + 1) * 2;
 				let oneOverS = 1 / s;
 				return .((T)(0.25) * s, (m[6] - m[9]) * oneOverS, (m[8] - m[2]) * oneOverS, (m[1] - m[4]) * oneOverS);
 			}
 			else if (m[0] > m[5] && m[0] > m[10])
 			{
-				let s = Math.Sqrt(m[0] - m[5] - m[10] + 1) * 2;
+				let s = (T)Math.Sqrt(m[0] - m[5] - m[10] + 1) * 2;
 				let oneOverS = 1 / s;
 				return .((m[6] - m[9]) * oneOverS, (T)(0.25) * s, (m[4] + m[1]) * oneOverS, (m[8] + m[2]) * oneOverS);
 			}
 			else if (m[5] > m[10])
 			{
-				let s = Math.Sqrt(m[5] - m[0] - m[10] + 1) * 2;
+				let s = (T)Math.Sqrt(m[5] - m[0] - m[10] + 1) * 2;
 				let oneOverS = 1 / s;
 				return .((m[8] - m[2]) * oneOverS, (m[4] + m[1]) * oneOverS, (T)(0.25) * s, (m[6] + m[9]) * oneOverS);
 			}
 			else
 			{
-				let s = Math.Sqrt(m[10] - m[0] - m[5] + 1) * 2;
+				let s = (T)Math.Sqrt(m[10] - m[0] - m[5] + 1) * 2;
 				let oneOverS = 1 / s;
 				return .((m[1] - m[4]) * oneOverS, (m[8] + m[2]) * oneOverS, (m[6] + m[9]) * oneOverS, (T)(0.25) * s);
 			}
@@ -269,14 +237,14 @@ namespace SteelEngine.Math
 
 		public static Self FromAngleAxis(T angle, Vector3_t<T> axis)
 		{
-			let halfAngle = 0.5 * angle;
-			return .(axis.Normalized * Math.Sin(halfAngle), Math.Cos(halfAngle));
+			let halfAngle = (T)0.5 * angle;
+			return .(axis.Normalized * (T)Math.Sin(halfAngle), (T)Math.Cos(halfAngle));
 		}
 
 		public static Vector3_t<T> PerpendicularVector(Vector3_t<T> v)
 		{
 			var axis = Vector3_t<T>.CrossProduct(.(1, 0, 0), v);
-			if(axis.LengthSquared > 0.05)
+			if(axis.LengthSquared > (T)0.05)
 			{
 				axis = Vector3_t<T>.CrossProduct(.(0, 1, 0), v);
 			}
@@ -289,72 +257,16 @@ namespace SteelEngine.Math
 			let end = to.Normalized;
 
 			let dotProduct = Vector3_t<T>.DotProduct(start, end);
-			// Any rotation < 0.1 degrees is treated as no rotation
-			// in order to avoid division by zero errors.
-			// So we early-out in cases where it's less than 0.1 degrees.
+			// Any rotation < 0.1 degrees is treated as no rotation to avoid division by zero errors
 			// cos( 0.1 degrees) = 0.99999847691
 			if (dotProduct >= (T)(0.99999847691)) 
 				return .Identity;
-			// If the vectors point in opposite directions, return a 180 degree
-			// rotation, on an arbitrary axis.
+			// If the vectors point in opposite directions, return a 180 degree rotation on an arbitrary axis.
 			if (dotProduct <= (T)(-0.99999847691)) 
 				return .(PerpendicularVector(start), 0);
-			// Degenerate cases have been handled, so if we're here, we have to
-			// actually compute the angle we want:
 
 			let crossProduct = Vector3_t<T>.CrossProduct(start, end);
-
-			return .(crossProduct, crossProduct, crossProduct, (T)(1.0) + dotProduct).Normalized;
+			return .(crossProduct.x, crossProduct.y, crossProduct.z, (T)(1 + dotProduct)).Normalized;
 		}
-
-		/// <returns>
-		/// Dot product of quaternions
-		/// </returns>
-		public static Self DotProduct(Self q1, Self q2)
-		{
-			return q1.x * q2.x + q1.y * q2.y + q1.z * q2.z + q1.w * q2.w;
-		}
-
-		public static Self LookAt(Vector3_t<T> forward, Vector3_t<T> up)
-		{
-			// @TODO(fusion)
-			//Matrix33_t<T>.LookAt(forward, up);
-			return FromMatrix(Matrix33_t<T>());
-		}
-
-		public void operator+=(Self rv) mut
-		{
-			x += rv.x;
-			y += rv.y;
-			z += rv.z;
-			w += rv.w;
-		}
-
-		public static Self operator+(Self lv, Self rv)
-		{
-			return .(lv.x + rv.x, lv.y + rv.y, lv.z + rv.z, lv.z + rv.z);
-		}
-
-		public static Self operator*(Self lv, Self rv)
-		{
-			return .(Vector3_t<T>.Add((lv.w * lv._v), Vector3_t<T>.Add(rv.w * rv._v, Vector3_t<T>.CrossProduct(lv._v, rv._v)), lv.w * rv.w - Vector3_t<T>.DotProduct(lv._v, rv._v)));
-		}
-
-		public static Self operator*(Self lv, T rv)
-		{
-			(var angle, var axis) = lv.AngleAxis;
-			angle *= rv;
-			return .(axis.Normalized * Math.Sin(0.5 * angle), Math.Cos(0.5 * angle));
-		}
-
-		//[Commutable]
-		public static Self operator*(Self lv, Vector3_t<T> rv)
-		{
-			T ww = lv.w + lv.w;
-			return .(ww * Vector3_t<T>.CrossProduct(lv._v, rv) + (ww * lv.w - 1) * rv +
-			       2 * Vector3_t<T>.DotProduct(lv._v, rv) * lv._v);
-		}
-
-		
 	}
 }
