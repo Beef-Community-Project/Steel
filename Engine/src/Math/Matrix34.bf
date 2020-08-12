@@ -21,13 +21,13 @@ namespace SteelEngine.Math
 			this = default;
 		}
 
-		public this(T m11, T m12, T m13, T m14,
-					T m21, T m22, T m23, T m24,
-					T m31, T m32, T m33, T m34)
+		public this(T m00, T m01, T m02, T m03,
+					T m10, T m11, T m12, T m13,
+					T m20, T m21, T m22, T m23)
 		{
-			data = .(m11, m12, m13, m14,
-					m21, m22, m23, m24,
-					m31, m32, m33, m34);
+			data = .(m00, m01, m02, m03,
+					m10, m11, m12, m13,
+					m20, m21, m22, m23);
 		}
 
 		public this(Matrix33_t<T> m)

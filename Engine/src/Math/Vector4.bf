@@ -352,4 +352,17 @@ namespace SteelEngine.Math
 		}
 	}
 
+	public extension Vector4_t<T> where T : operator T <=> T
+	{
+		public static Self Min(Self v1, Self v2)
+		{
+			return .(Math.Min(v1.x, v2.x), Math.Min(v1.y, v2.y), Math.Min(v1.z, v2.z), Math.Min(v1.w, v2.w));
+		}
+
+		public static Self Max(Self v1, Self v2)
+		{
+			return .(Math.Max(v1.x, v2.x), Math.Max(v1.y, v2.y), Math.Max(v1.z, v2.z), Math.Max(v1.w, v2.w));
+		}
+	}
+
 }

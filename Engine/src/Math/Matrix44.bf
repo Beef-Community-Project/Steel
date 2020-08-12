@@ -102,6 +102,7 @@ namespace SteelEngine.Math
 
 		public T Trace
 		{
+			[Inline]
 			get
 			{
 				return data2d[0][0] + data2d[1][1] + data2d[2][2] + data2d[3][3];
@@ -141,11 +142,11 @@ namespace SteelEngine.Math
 
 		public void Transpose() mut
 		{
-			Vector4_t<T>[4] tmp = ?;
-			tmp[0] = .(columns[0].x, columns[1].x, columns[2].x, columns[3].x);
-			tmp[1] = .(columns[0].y, columns[1].y, columns[2].y, columns[3].y);
-			tmp[2] = .(columns[0].z, columns[1].z, columns[2].z, columns[3].z);
-			tmp[3] = .(columns[0].w, columns[1].w, columns[2].w, columns[3].w);
+			Vector4_t<T>[COLUMNS] tmp = ?;
+			tmp[0] = .(this[0, 0], this[0, 1], this[0, 2], this[0, 3]);
+			tmp[1] = .(this[1, 0], this[1, 1], this[1, 2], this[1, 3]);
+			tmp[2] = .(this[2, 0], this[2, 1], this[2, 2], this[2, 3]);
+			tmp[2] = .(this[3, 0], this[3, 1], this[3, 2], this[3, 3]);
 			columns = tmp;
 		}
 

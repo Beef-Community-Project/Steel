@@ -346,4 +346,17 @@ namespace SteelEngine.Math
 				v1.x * v2.y - v2.x * v1.y);
 		}
 	}
+
+	public extension Vector3_t<T> where T : operator T <=> T
+	{
+		public static Self Min(Self v1, Self v2)
+		{
+			return .(Math.Min(v1.x, v2.x), Math.Min(v1.y, v2.y), Math.Min(v1.z, v2.z));
+		}
+
+		public static Self Max(Self v1, Self v2)
+		{
+			return .(Math.Max(v1.x, v2.x), Math.Max(v1.y, v2.y), Math.Max(v1.z, v2.z));
+		}
+	}
 }

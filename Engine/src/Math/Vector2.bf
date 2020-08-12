@@ -300,6 +300,19 @@ namespace SteelEngine.Math
 		{
 			return v1.x * v2.x + v1.y * v2.y;
 		}
+
 	}
 
+	public extension Vector2_t<T> where T : operator T <=> T
+	{
+		public static Self Min(Self v1, Self v2)
+		{
+			return .(Math.Min(v1.x, v2.x), Math.Min(v1.y, v2.y));
+		}
+
+		public static Self Max(Self v1, Self v2)
+		{
+			return .(Math.Max(v1.x, v2.x), Math.Max(v1.y, v2.y));
+		}
+	}
 }

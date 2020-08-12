@@ -73,6 +73,14 @@ namespace SteelEngine.Math
 										 0,0,1);
 
 
+		public T Determinant
+		{
+			get
+			{
+				return m00 * (m11*m22 - m12*m21) - m01 * (m10*m22 - m12*m20) + m02 * (m10*m21 - m11*m20); 
+			}
+		}
+
 		public Self Inverse
 		{
 			get
@@ -92,10 +100,100 @@ namespace SteelEngine.Math
 			}	
 		}
 
+		public void Transpose() mut
+		{
+			Vector3_t<T>[COLUMNS] tmp = ?;
+			tmp[0] = .(this[0, 0], this[0, 1], this[0, 2]);
+			tmp[1] = .(this[1, 0], this[1, 1], this[1, 2]);
+			tmp[2] = .(this[2, 0], this[2, 1], this[2, 2]);
+			columns = tmp;
+		}
 
+		public Self Transposed
+		{
+			[Inline]
+			get
+			{
+				Self tmp = this;
+				return tmp..Transpose();
+			}
+		}
+
+		public static Self operator+(Self lv, Self rv)
+		{
+			Self tmp = lv;
+			tmp.columns[0] += rv.columns[0];
+			tmp.columns[1] += rv.columns[1];
+			tmp.columns[2] += rv.columns[2];
+			return tmp;
+		}
+
+		[Commutable]
+		public static Self operator+(Self lv, T rv)
+		{
+			Self tmp = lv;
+			tmp.columns[0] += rv;
+			tmp.columns[1] += rv;
+			tmp.columns[2] += rv;
+			return tmp;
+		}
+
+		public static Self operator-(Self lv, Self rv)
+		{
+			Self tmp = lv;
+			tmp.columns[0] -= rv.columns[0];
+			tmp.columns[1] -= rv.columns[1];
+			tmp.columns[2] -= rv.columns[2];
+			return tmp;
+		}
+
+		[Commutable]
+		public static Self operator-(Self lv, T rv)
+		{
+			Self tmp = lv;
+			tmp.columns[0] -= rv;
+			tmp.columns[1] -= rv;
+			tmp.columns[2] -= rv;
+			return tmp;
+		}
+
+		public static Self operator*(Self lv, Self rv)
+		{
+			Self tmp = ?;
+			{
+			  Vector3_t<T> row = .(lv[0], lv[3], lv[6]);
+			  tmp[0] = Vector3_t<T>.DotProduct(rv.Column(0), row);
+			  tmp[3] = Vector3_t<T>.DotProduct(rv.Column(1), row);
+			  tmp[6] = Vector3_t<T>.DotProduct(rv.Column(2), row);
+			}
+			{
+				Vector3_t<T> row = .(lv[1], lv[4], lv[7]);
+				tmp[1] = Vector3_t<T>.DotProduct(rv.Column(0), row);
+				tmp[4] = Vector3_t<T>.DotProduct(rv.Column(1), row);
+				tmp[7] = Vector3_t<T>.DotProduct(rv.Column(2), row);
+			}
+			{
+				Vector3_t<T> row = .(lv[2], lv[5], lv[8]);
+				tmp[2] = Vector3_t<T>.DotProduct(rv.Column(0), row);
+				tmp[5] = Vector3_t<T>.DotProduct(rv.Column(1), row);
+				tmp[8] = Vector3_t<T>.DotProduct(rv.Column(2), row);
+			}
+			return tmp;
+		}
+
+		[Commutable]
 		public static Self operator*(Self lv, T rv)
 		{
-			return default;
+			Self tmp = lv;
+			tmp.columns[0] *= rv;
+			tmp.columns[1] *= rv;
+			tmp.columns[2] *= rv;
+			return tmp;
+		}
+
+		public static Self operator/(Self lv, T rv)
+		{
+			return lv * (1 / rv);
 		}
 	}
 }
