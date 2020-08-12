@@ -3,7 +3,7 @@ using System;
 namespace SteelEngine.Math
 {
 	[CRepr, Union]
-	public struct Matrix44_t<T> 
+	public struct Matrix44<T> 
 		where T : operator T * T, operator T + T, operator T - T, operator T / T, operator -T, operator implicit float, operator explicit double
 		where int : operator T <=> T
 		where double : operator implicit T
@@ -14,7 +14,7 @@ namespace SteelEngine.Math
 
 		public T[ROWS][COLUMNS] data2d;
 		public T[SIZE] data;                          
-		public Vector4_t<T>[COLUMNS] columns;
+		public Vector4<T>[COLUMNS] columns;
 
 		public this()
 		{
@@ -37,7 +37,7 @@ namespace SteelEngine.Math
 			data = values;
 		}
 
-		public this(Vector4_t<T> c1, Vector4_t<T> c2, Vector4_t<T> c3, Vector4_t<T> c4)
+		public this(Vector4<T> c1, Vector4<T> c2, Vector4<T> c3, Vector4<T> c4)
 		{
 			columns = .(c1, c2, c3, c4);
 		}
@@ -74,7 +74,7 @@ namespace SteelEngine.Math
 			set mut { data2d[column][row] = value; }
 		}
 
-		public Vector4_t<T> Column(int i)
+		public Vector4<T> Column(int i)
 		{
 			return columns[i];
 		}
@@ -142,7 +142,7 @@ namespace SteelEngine.Math
 
 		public void Transpose() mut
 		{
-			Vector4_t<T>[COLUMNS] tmp = ?;
+			Vector4<T>[COLUMNS] tmp = ?;
 			tmp[0] = .(this[0, 0], this[0, 1], this[0, 2], this[0, 3]);
 			tmp[1] = .(this[1, 0], this[1, 1], this[1, 2], this[1, 3]);
 			tmp[2] = .(this[2, 0], this[2, 1], this[2, 2], this[2, 3]);
@@ -160,16 +160,16 @@ namespace SteelEngine.Math
 			}
 		}
 
-		public Matrix33_t<T> RotationMatrix
+		public Matrix33<T> RotationMatrix
 		{
 			get { return .(data[0], data[1], data[2],
 							data[4], data[5], data[6],
 							data[8], data[9], data[10]); }
 		}
 
-		public Vector3_t<T> TranslationVector3D => columns[3].xyz;
+		public Vector3<T> TranslationVector3D => columns[3].xyz;
 
-		public Vector3_t<T> ScaleVector3D
+		public Vector3<T> ScaleVector3D
 		{
 			get { return .(columns[0].xyz.Length,
 							columns[1].xyz.Length,
@@ -197,15 +197,15 @@ namespace SteelEngine.Math
 				-(zfar + znear) / (zfar - znear), (T)(1));
 		}
 
-		public static Self LookAt(Vector3_t<T> at, Vector3_t<T> eye, Vector3_t<T> up, T handedness = 1)
+		public static Self LookAt(Vector3<T> at, Vector3<T> eye, Vector3<T> up, T handedness = 1)
 		{
-			Vector3_t<T>[4] axes = ?;
+			Vector3<T>[4] axes = ?;
 			axes[2] = (at - eye).Normalized;
-			axes[0] = Vector3_t<T>.CrossProduct(up, axes[2]).Normalized;
-			axes[1] = Vector3_t<T>.CrossProduct(axes[2], axes[0]);
-			axes[3] = .(handedness * Vector3_t<T>.DotProduct(axes[0], eye),
-                       -Vector3_t<T>.DotProduct(axes[1], eye),
-                       handedness * Vector3_t<T>.DotProduct(axes[2], eye));
+			axes[0] = Vector3<T>.CrossProduct(up, axes[2]).Normalized;
+			axes[1] = Vector3<T>.CrossProduct(axes[2], axes[0]);
+			axes[3] = .(handedness * Vector3<T>.DotProduct(axes[0], eye),
+                       -Vector3<T>.DotProduct(axes[1], eye),
+                       handedness * Vector3<T>.DotProduct(axes[2], eye));
 
 			// Default calculation is left-handed (i.e. handedness=-1).
 			// Negate x and z axes for right-handed (i.e. handedness=+1) case.
@@ -213,21 +213,21 @@ namespace SteelEngine.Math
 			axes[0] *= neg;
 			axes[2] *= neg;
 
-			Vector4_t<T> column0 = .(axes[0][0], axes[1][0], axes[2][0], 0);
-			Vector4_t<T> column1 = .(axes[0][1], axes[1][1], axes[2][1], 0);
-			Vector4_t<T> column2 = .(axes[0][2], axes[1][2], axes[2][2], 0);
-			Vector4_t<T> column3 = .(axes[3], 1);
+			Vector4<T> column0 = .(axes[0][0], axes[1][0], axes[2][0], 0);
+			Vector4<T> column1 = .(axes[0][1], axes[1][1], axes[2][1], 0);
+			Vector4<T> column2 = .(axes[0][2], axes[1][2], axes[2][2], 0);
+			Vector4<T> column3 = .(axes[3], 1);
 			return .(column0, column1, column2, column3);
 		}
 
 
-		public static Self Transform(Vector3_t<T> pos, Quaternion_t<T> rot, Vector3_t<T> scale)
+		public static Self Transform(Vector3<T> pos, Quaternion_t<T> rot, Vector3<T> scale)
 		{
-			Matrix33_t<T> rotation = rot.ToMatrix();
-			Vector4_t<T> c0 = .(rotation[0, 0], rotation[1, 0], rotation[2, 0], 0);
-			Vector4_t<T> c1 = .(rotation[0, 1], rotation[1, 1], rotation[2, 1], 0);
-			Vector4_t<T> c2 = .(rotation[0, 2], rotation[1, 2], rotation[2, 2], 0);
-			Vector4_t<T> c3 = .(0, 0, 0, 1);
+			Matrix33<T> rotation = rot.ToMatrix();
+			Vector4<T> c0 = .(rotation[0, 0], rotation[1, 0], rotation[2, 0], 0);
+			Vector4<T> c1 = .(rotation[0, 1], rotation[1, 1], rotation[2, 1], 0);
+			Vector4<T> c2 = .(rotation[0, 2], rotation[1, 2], rotation[2, 2], 0);
+			Vector4<T> c3 = .(0, 0, 0, 1);
 			c0 *= scale.x;
 			c1 *= scale.y;
 			c2 *= scale.z;
@@ -237,7 +237,7 @@ namespace SteelEngine.Math
 			return .(c0, c1, c2, c3);
 		}
 
-		public static Self Translation(Vector3_t<T> pos)
+		public static Self Translation(Vector3<T> pos)
 		{
 			return .(1, 0, 0, 0,
 					 0, 1, 0, 0,
@@ -245,7 +245,7 @@ namespace SteelEngine.Math
 					 pos.x, pos.y, pos.z, 1);
 		}
 
-		public static Self Scale(Vector3_t<T> scale)
+		public static Self Scale(Vector3<T> scale)
 		{
 			return .(scale.x, 0, 0, 0,
 					0, scale.y, 0, 0,

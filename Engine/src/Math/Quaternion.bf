@@ -2,7 +2,7 @@ using System;
 
 namespace SteelEngine.Math
 {
-	public struct Quaternion_t<T> : Vector4_t<T> where T : IHashable
+	public struct Quaternion<T> : Vector4<T> where T : IHashable
 	{
 		public this()
 		{
@@ -19,13 +19,13 @@ namespace SteelEngine.Math
 			data = values;
 		}
 
-		public this(Vector3_t<T> v, T w)
+		public this(Vector3<T> v, T w)
 		{
 			data = .(v.x, v.y, v.z, w);
 		}
 	}
 
-	public extension Quaternion_t<T> 
+	public extension Quaternion<T> 
 		where T : operator T * T, operator T + T, operator T - T, operator T / T, operator -T, operator implicit float, operator explicit double
 		where int : operator T <=> T
 		where double : operator implicit T
@@ -33,7 +33,7 @@ namespace SteelEngine.Math
 		public static Self Identity => .(1, 0, 0, 0);
 
 		[Error("Not implemented")]
-		public static Self LookAt(Vector3_t<T> forward, Vector3_t<T> up)
+		public static Self LookAt(Vector3<T> forward, Vector3<T> up)
 		{
 			// @TODO(fusion)
 			//Matrix33_t<T>.LookAt(forward, up);
@@ -55,16 +55,16 @@ namespace SteelEngine.Math
 
 		public static Self operator*(Self lv, Self rv)
 		{
-			let w = lv.w * rv.w - Vector3_t<T>.DotProduct(lv.xyz, rv.xyz);
-			let v = lv.w * rv.xyz + rv.w * lv.xyz + Vector3_t<T>.CrossProduct(lv.xyz, rv.xyz);
+			let w = lv.w * rv.w - Vector3<T>.DotProduct(lv.xyz, rv.xyz);
+			let v = lv.w * rv.xyz + rv.w * lv.xyz + Vector3<T>.CrossProduct(lv.xyz, rv.xyz);
 			return .(v, w);
 		}
 
-		 public static Vector3_t<T> operator*(Self lv, Vector3_t<T> rv)
+		 public static Vector3<T> operator*(Self lv, Vector3<T> rv)
 		 {
 		 	T ww = lv.w + lv.w;
-		 	return ww * Vector3_t<T>.CrossProduct(lv.xyz, rv) + (ww * lv.w - 1) * rv +
-		 	       2 * Vector3_t<T>.DotProduct(lv.xyz, rv) * lv.w;
+		 	return ww * Vector3<T>.CrossProduct(lv.xyz, rv) + (ww * lv.w - 1) * rv +
+		 	       2 * Vector3<T>.DotProduct(lv.xyz, rv) * lv.w;
 		 }
 
 		public new Self Normalized
@@ -77,7 +77,7 @@ namespace SteelEngine.Math
 			}
 		}
 
-		public Matrix33_t<T> ToMatrix()
+		public Matrix33<T> ToMatrix()
 		{
 			let x2 = x * x, y2 = y * y, z2 = z * z;
 			let sx = w * x, sy = w * y, sz = w * z;
@@ -87,7 +87,7 @@ namespace SteelEngine.Math
 			        2 * (sy + xz), 2 * (yz - sx), 1 - 2 * (x2 + y2));
 		}
 
-		public Matrix44_t<T> ToMatrix44()
+		public Matrix44<T> ToMatrix44()
 		{
 			let x2 = x * x, y2 = y * y, z2 = z * z;
 			let sx = w * x, sy = w * y, sz = w * z;
@@ -100,11 +100,11 @@ namespace SteelEngine.Math
 
 		public Self Inverse => .(-x, -y, -z, w);
 
-		public Vector3_t<T> EulerAngles
+		public Vector3<T> EulerAngles
 		{
 			get
 			{
-				Matrix33_t<T> m = ToMatrix();
+				Matrix33<T> m = ToMatrix();
 				T cos2 = m[0] * m[0] + m[1] * m[1];
 				if (cos2 < 1e-6f)
 				{
@@ -128,17 +128,17 @@ namespace SteelEngine.Math
 		/// <returns>
 		/// Tuple containing angle and normalized axis
 		/// </returns>
-		public (T angle, Vector3_t<T> axis) AngleAxis
+		public (T angle, Vector3<T> axis) AngleAxis
 		{
 			get
 			{
-				Vector3_t<T> axis = xyz;
+				Vector3<T> axis = xyz;
 				let axisLength = axis.Normalize();
 				T angle = 2 * (T)Math.Atan2(axisLength, w);
 				if (axisLength == 0)
 				{
 					// If angle = 0 and 360. All axes are correct
-					return (angle, Vector3_t<T>(1, 0, 0));
+					return (angle, Vector3<T>(1, 0, 0));
 				}
 				return (angle, axis);
 			}
@@ -149,7 +149,7 @@ namespace SteelEngine.Math
 		/// </summary>
 		public static Self FromEulerAngles(T xRotation, T yRotation, T zRotation)
 		{
-			Vector3_t<T> halfAngles = .((T)(0.5) * xRotation, (T)(0.5) * yRotation, (T)(0.5) * zRotation);
+			Vector3<T> halfAngles = .((T)(0.5) * xRotation, (T)(0.5) * yRotation, (T)(0.5) * zRotation);
 			let sinx = (T)Math.Sin(halfAngles[0]);
 			let cosx = (T)Math.Cos(halfAngles[0]);
 			let siny = (T)Math.Sin(halfAngles[1]);
@@ -166,7 +166,7 @@ namespace SteelEngine.Math
 		/// Create quaternion from 3 euler angles
 		/// </summary>
 		[Inline]
-		public static Self FromEulerAngles(Vector3_t<T> angles)
+		public static Self FromEulerAngles(Vector3<T> angles)
 		{
 			return FromEulerAngles(angles.x, angles.y, angles.z);
 		}
@@ -174,7 +174,7 @@ namespace SteelEngine.Math
 		/// <summary>
 		/// Create quaternion from rotation matrix
 		/// </summary>
-		public static Self FromMatrix(Matrix33_t<T> m)
+		public static Self FromMatrix(Matrix33<T> m)
 		{
 			let trace = m[0, 0] + m[1, 1]+ m[2, 2];
 			if (trace > 0)
@@ -206,7 +206,7 @@ namespace SteelEngine.Math
 		/// <summary>
 		/// Create quaternion from upper-left 3x3 rotation matrix of 4x4 matrix
 		/// </summary>
-		public static Self FromMatrix(Matrix44_t<T> m)
+		public static Self FromMatrix(Matrix44<T> m)
 		{
 			let trace = m[0, 0] + m[1, 1] + m[2, 2];
 			if (trace > 0)
@@ -235,28 +235,28 @@ namespace SteelEngine.Math
 			}
 		}
 
-		public static Self FromAngleAxis(T angle, Vector3_t<T> axis)
+		public static Self FromAngleAxis(T angle, Vector3<T> axis)
 		{
 			let halfAngle = (T)0.5 * angle;
 			return .(axis.Normalized * (T)Math.Sin(halfAngle), (T)Math.Cos(halfAngle));
 		}
 
-		public static Vector3_t<T> PerpendicularVector(Vector3_t<T> v)
+		public static Vector3<T> PerpendicularVector(Vector3<T> v)
 		{
-			var axis = Vector3_t<T>.CrossProduct(.(1, 0, 0), v);
+			var axis = Vector3<T>.CrossProduct(.(1, 0, 0), v);
 			if(axis.LengthSquared > (T)0.05)
 			{
-				axis = Vector3_t<T>.CrossProduct(.(0, 1, 0), v);
+				axis = Vector3<T>.CrossProduct(.(0, 1, 0), v);
 			}
 			return axis;
 		}
 
-		public static Self RotateFromTo(Vector3_t<T> from, Vector3_t<T> to)
+		public static Self RotateFromTo(Vector3<T> from, Vector3<T> to)
 		{
 			let start = from.Normalized;
 			let end = to.Normalized;
 
-			let dotProduct = Vector3_t<T>.DotProduct(start, end);
+			let dotProduct = Vector3<T>.DotProduct(start, end);
 			// Any rotation < 0.1 degrees is treated as no rotation to avoid division by zero errors
 			// cos( 0.1 degrees) = 0.99999847691
 			if (dotProduct >= (T)(0.99999847691)) 
@@ -265,7 +265,7 @@ namespace SteelEngine.Math
 			if (dotProduct <= (T)(-0.99999847691)) 
 				return .(PerpendicularVector(start), 0);
 
-			let crossProduct = Vector3_t<T>.CrossProduct(start, end);
+			let crossProduct = Vector3<T>.CrossProduct(start, end);
 			return .(crossProduct.x, crossProduct.y, crossProduct.z, (T)(1 + dotProduct)).Normalized;
 		}
 	}

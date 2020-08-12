@@ -3,7 +3,7 @@ using System;
 namespace SteelEngine.Math
 {
 	[CRepr, Union]
-	public struct Matrix33_t<T> 
+	public struct Matrix33<T> 
 		where T : operator T * T, operator T + T, operator T - T, operator T / T, operator -T, operator implicit float, operator explicit double
 		where int : operator T <=> T
 		where double : operator implicit T
@@ -14,7 +14,7 @@ namespace SteelEngine.Math
 
 		public T[ROWS][COLUMNS] data2d;
 		public T[SIZE] data;
-		public Vector3_t<T>[COLUMNS] columns;
+		public Vector3<T>[COLUMNS] columns;
 
 		public this()
 		{
@@ -30,7 +30,7 @@ namespace SteelEngine.Math
 					m20, m21, m22);
 		}
 
-		public this(Vector3_t<T> c1, Vector3_t<T> c2, Vector3_t<T> c3)
+		public this(Vector3<T> c1, Vector3<T> c2, Vector3<T> c3)
 		{
 			columns = .(c1, c2, c3);
 		}
@@ -59,7 +59,7 @@ namespace SteelEngine.Math
 			[Inline] set mut { data2d[column][row] = value; }
 		}
 
-		public Vector3_t<T> Column(int i)
+		public Vector3<T> Column(int i)
 		{
 			return columns[i];
 		}
@@ -102,7 +102,7 @@ namespace SteelEngine.Math
 
 		public void Transpose() mut
 		{
-			Vector3_t<T>[COLUMNS] tmp = ?;
+			Vector3<T>[COLUMNS] tmp = ?;
 			tmp[0] = .(this[0, 0], this[0, 1], this[0, 2]);
 			tmp[1] = .(this[1, 0], this[1, 1], this[1, 2]);
 			tmp[2] = .(this[2, 0], this[2, 1], this[2, 2]);
@@ -161,22 +161,22 @@ namespace SteelEngine.Math
 		{
 			Self tmp = ?;
 			{
-			  Vector3_t<T> row = .(lv[0], lv[3], lv[6]);
-			  tmp[0] = Vector3_t<T>.DotProduct(rv.Column(0), row);
-			  tmp[3] = Vector3_t<T>.DotProduct(rv.Column(1), row);
-			  tmp[6] = Vector3_t<T>.DotProduct(rv.Column(2), row);
+			  Vector3<T> row = .(lv[0], lv[3], lv[6]);
+			  tmp[0] = Vector3<T>.DotProduct(rv.Column(0), row);
+			  tmp[3] = Vector3<T>.DotProduct(rv.Column(1), row);
+			  tmp[6] = Vector3<T>.DotProduct(rv.Column(2), row);
 			}
 			{
-				Vector3_t<T> row = .(lv[1], lv[4], lv[7]);
-				tmp[1] = Vector3_t<T>.DotProduct(rv.Column(0), row);
-				tmp[4] = Vector3_t<T>.DotProduct(rv.Column(1), row);
-				tmp[7] = Vector3_t<T>.DotProduct(rv.Column(2), row);
+				Vector3<T> row = .(lv[1], lv[4], lv[7]);
+				tmp[1] = Vector3<T>.DotProduct(rv.Column(0), row);
+				tmp[4] = Vector3<T>.DotProduct(rv.Column(1), row);
+				tmp[7] = Vector3<T>.DotProduct(rv.Column(2), row);
 			}
 			{
-				Vector3_t<T> row = .(lv[2], lv[5], lv[8]);
-				tmp[2] = Vector3_t<T>.DotProduct(rv.Column(0), row);
-				tmp[5] = Vector3_t<T>.DotProduct(rv.Column(1), row);
-				tmp[8] = Vector3_t<T>.DotProduct(rv.Column(2), row);
+				Vector3<T> row = .(lv[2], lv[5], lv[8]);
+				tmp[2] = Vector3<T>.DotProduct(rv.Column(0), row);
+				tmp[5] = Vector3<T>.DotProduct(rv.Column(1), row);
+				tmp[8] = Vector3<T>.DotProduct(rv.Column(2), row);
 			}
 			return tmp;
 		}

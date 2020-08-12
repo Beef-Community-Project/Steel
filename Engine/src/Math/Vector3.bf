@@ -3,7 +3,7 @@ using System;
 namespace SteelEngine.Math
 {
 	[CRepr]
-	public struct Vector3_t<T> : IHashable where T : IHashable
+	public struct Vector3<T> : IHashable where T : IHashable
 	{
 		public T[3] data;
 
@@ -38,7 +38,7 @@ namespace SteelEngine.Math
 		}
 
 		// Creates a new Vector with given x, y components and sets z to default
-		public this(Vector2_t<T> v2)
+		public this(Vector2<T> v2)
 		{
 			data = .(v2.x, v2.y, default);
 		}
@@ -67,7 +67,7 @@ namespace SteelEngine.Math
 			[Inline] set mut { data[i] = value; }
 		}
 
-		public Vector2_t<T> xy => .(x,y);
+		public Vector2<T> xy => .(x,y);
 
 		public static bool operator ==(Self value1, Self value2)
 		{
@@ -96,7 +96,7 @@ namespace SteelEngine.Math
 		}
 	}
 
-	public extension Vector3_t<T> where T : operator implicit int
+	public extension Vector3<T> where T : operator implicit int
 	{
 		public static Self Zero=> .(0, 0, 0);
 		public static Self One=> .(1,1,1);
@@ -109,7 +109,7 @@ namespace SteelEngine.Math
 		public static Self Back=> .(0, 0, 1);
 	}
 
-	public extension Vector3_t<T>
+	public extension Vector3<T>
 		where T : operator implicit float
 		where float : operator implicit T
 	{
@@ -117,7 +117,7 @@ namespace SteelEngine.Math
 		public static Self NegativeInfinity => .(float.NegativeInfinity, float.NegativeInfinity, float.NegativeInfinity);
 	}
 
-	public extension Vector3_t<T> 
+	public extension Vector3<T> 
 		where T : operator implicit double
 		where double : operator implicit T
 	{
@@ -126,7 +126,7 @@ namespace SteelEngine.Math
 	}
 
 
-	public extension Vector3_t<T> where T : operator T + T, operator T - T, operator T * T, operator T / T, operator -T
+	public extension Vector3<T> where T : operator T + T, operator T - T, operator T * T, operator T / T, operator -T
 	{
 		public void operator+=(Self rv) mut
 		{
@@ -248,7 +248,7 @@ namespace SteelEngine.Math
 
 	}
 
-	public extension Vector3_t<T> 
+	public extension Vector3<T> 
 		where T : operator T * T, operator T + T, operator T - T, operator T / T, operator -T, operator implicit float, operator explicit double
 		where int : operator T <=> T
 		where double : operator implicit T
@@ -315,7 +315,7 @@ namespace SteelEngine.Math
 		}
 	}
 
-	public extension Vector3_t<T> where T : operator T + T, operator T - T, operator T * T, operator -T
+	public extension Vector3<T> where T : operator T + T, operator T - T, operator T * T, operator -T
 	{
 		/// <summary>
 		///	Linearly interpolates between vectors by value
@@ -347,7 +347,7 @@ namespace SteelEngine.Math
 		}
 	}
 
-	public extension Vector3_t<T> where T : operator T <=> T
+	public extension Vector3<T> where T : operator T <=> T
 	{
 		public static Self Min(Self v1, Self v2)
 		{

@@ -3,7 +3,7 @@ using System;
 namespace SteelEngine.Math
 {
 	[CRepr, Union]
-	public struct Matrix34_t<T>
+	public struct Matrix34<T>
 		where T : operator T * T, operator T + T, operator T - T, operator T / T, operator -T, operator implicit float, operator explicit double
 		where int : operator T <=> T
 		where double : operator implicit T
@@ -14,7 +14,7 @@ namespace SteelEngine.Math
 
 		public T[ROWS][COLUMNS] data2d;
 		public T[SIZE] data;
-		public Vector3_t<T>[COLUMNS] columns;
+		public Vector3<T>[COLUMNS] columns;
 
 		public this()
 		{
@@ -30,7 +30,7 @@ namespace SteelEngine.Math
 					m20, m21, m22, m23);
 		}
 
-		public this(Matrix33_t<T> m)
+		public this(Matrix33<T> m)
 		{
 			data = .(m[0],m[1],m[2], 1,
 					m[3],m[4],m[5],	1,
@@ -64,7 +64,7 @@ namespace SteelEngine.Math
 			[Inline] set mut { data2d[column][row] = value; }
 		}
 
-		public Vector3_t<T> Column(int i)
+		public Vector3<T> Column(int i)
 		{
 			return columns[i];
 		}
