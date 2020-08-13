@@ -12,7 +12,7 @@ namespace SteelEngine.Math
 		public const let COLUMNS = 3;
 		public const let SIZE = ROWS * COLUMNS;
 
-		public T[ROWS][COLUMNS] data2d;
+		public T[COLUMNS][ROWS] data2d;
 		public T[SIZE] data;
 		public Vector3<T>[COLUMNS] columns;
 
@@ -64,13 +64,9 @@ namespace SteelEngine.Math
 			return columns[i];
 		}
 
-		public static Self Zero => .(0,0,0,
-									 0,0,0,
-									 0,0,0);
+		public static Self Zero => .(0,0,0, 0,0,0, 0,0,0);
 
-		public static Self Identity => .(1,0,0,
-										 0,1,0,
-										 0,0,1);
+		public static Self Identity => .(1,0,0, 0,1,0, 0,0,1);
 
 
 		public T Determinant
@@ -161,10 +157,10 @@ namespace SteelEngine.Math
 		{
 			Self tmp = ?;
 			{
-			  Vector3<T> row = .(lv[0], lv[3], lv[6]);
-			  tmp[0] = Vector3<T>.DotProduct(rv.Column(0), row);
-			  tmp[3] = Vector3<T>.DotProduct(rv.Column(1), row);
-			  tmp[6] = Vector3<T>.DotProduct(rv.Column(2), row);
+				Vector3<T> row = .(lv[0], lv[3], lv[6]);
+				tmp[0] = Vector3<T>.DotProduct(rv.Column(0), row);
+				tmp[3] = Vector3<T>.DotProduct(rv.Column(1), row);
+				tmp[6] = Vector3<T>.DotProduct(rv.Column(2), row);
 			}
 			{
 				Vector3<T> row = .(lv[1], lv[4], lv[7]);

@@ -12,7 +12,7 @@ namespace SteelEngine.Math
 		public const let COLUMNS = 4;
 		public const let SIZE = ROWS * COLUMNS;
 
-		public T[ROWS][COLUMNS] data2d;
+		public T[COLUMNS][ROWS] data2d;
 		public T[SIZE] data;                          
 		public Vector4<T>[COLUMNS] columns;
 
@@ -79,15 +79,9 @@ namespace SteelEngine.Math
 			return columns[i];
 		}
 
-		public static Self Zero => .(0,0,0,0,
-									 0,0,0,0,
-									 0,0,0,0,
-									 0,0,0,0);
+		public static Self Zero => .(0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0);
 
-		public static Self Identity => .(1,0,0,0,
-										 0,1,0,0,
-										 0,0,1,0,
-										 0,0,0,1);
+		public static Self Identity => .(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
 
 		public Self Inverse
 		{
@@ -221,7 +215,7 @@ namespace SteelEngine.Math
 		}
 
 
-		public static Self Transform(Vector3<T> pos, Quaternion_t<T> rot, Vector3<T> scale)
+		public static Self Transform(Vector3<T> pos, Quaternion<T> rot, Vector3<T> scale)
 		{
 			Matrix33<T> rotation = rot.ToMatrix();
 			Vector4<T> c0 = .(rotation[0, 0], rotation[1, 0], rotation[2, 0], 0);

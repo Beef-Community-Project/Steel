@@ -244,7 +244,7 @@ namespace SteelEngine.Math
 		public static Vector3<T> PerpendicularVector(Vector3<T> v)
 		{
 			var axis = Vector3<T>.CrossProduct(.(1, 0, 0), v);
-			if(axis.LengthSquared > (T)0.05)
+			if (axis.LengthSquared > (T)0.05)
 			{
 				axis = Vector3<T>.CrossProduct(.(0, 1, 0), v);
 			}

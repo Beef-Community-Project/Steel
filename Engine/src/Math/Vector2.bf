@@ -255,7 +255,8 @@ namespace SteelEngine.Math
 		{
 			let div = (v1.Length * v2.Length);
 			// div can be 0 so we need to make sure we are not dividing by zero
-			if(div == 0) return 0;
+			if (div == 0)
+				return 0;
 			let cosVal = DotProduct(v1, v2) / div;
 			// if cosVal > 1 the Acos will return NaN
 			return (T)(cosVal > (T)1 ? 0 : Math.Acos(cosVal));

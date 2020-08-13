@@ -12,7 +12,7 @@ namespace SteelEngine.Math
 		public const let COLUMNS = 4;
 		public const let SIZE = ROWS * COLUMNS;
 
-		public T[ROWS][COLUMNS] data2d;
+		public T[COLUMNS][ROWS] data2d;
 		public T[SIZE] data;
 		public Vector3<T>[COLUMNS] columns;
 
