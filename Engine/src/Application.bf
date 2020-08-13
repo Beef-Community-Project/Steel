@@ -91,8 +91,7 @@ namespace SteelEngine
 
 			while (_isRunning)
 			{
-				let dt = Time.[Friend]Update();
-				Update(dt); // Should eventually send a delta representing the time between frames.
+				Update();
 				Draw();
 			}
 		}
@@ -157,21 +156,25 @@ namespace SteelEngine
 			return true;
 		}
 
-		protected virtual void OnUpdate(float dt) { }
+		protected virtual void OnUpdate() { }
 
-		private void Update(float delta)
+		private void Update()
 		{
+			let dt = Time.[Friend]Update();
+
 			_inputManager.Update();
 
 			DeleteQueuedComponents();
 			DeleteQueuedEntities();
+
 			for (let system in _systems)
 			{
 				system.[Friend]PreUpdate();
-				system.[Friend]Update(delta);
+				system.[Friend]Update(dt);
 				system.[Friend]PostUpdate();
 			}
-			OnUpdate(delta);
+
+			OnUpdate();
 		}
 
 		private void Draw()
