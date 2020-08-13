@@ -1,6 +1,7 @@
 using System;
+using SteelEngine.Math;
 
-namespace SteelEngine.Math
+namespace SteelEngine
 {
 	[CRepr]
 	public struct Vector3<T> : IHashable where T : IHashable

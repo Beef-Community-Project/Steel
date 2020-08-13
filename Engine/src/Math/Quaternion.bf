@@ -1,6 +1,7 @@
 using System;
+using SteelEngine.Math;
 
-namespace SteelEngine.Math
+namespace SteelEngine
 {
 	public struct Quaternion<T> : Vector4<T> where T : IHashable
 	{
