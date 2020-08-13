@@ -76,6 +76,7 @@ namespace SteelEngine
 			var windowConfig = WindowConfig(1080, 720, "SteelEngine");
 			_window = new Window(windowConfig, _eventCallback);
 
+			Time.[Friend]Initialize();
 			_inputManager.Initialize();
 			for (let system in _systems)
 			{
@@ -90,7 +91,7 @@ namespace SteelEngine
 
 			while (_isRunning)
 			{
-				Update(0f); // Should eventually send a delta representing the time between frames.
+				Update();
 				Draw();
 			}
 		}
@@ -155,19 +156,25 @@ namespace SteelEngine
 			return true;
 		}
 
+		protected virtual void OnUpdate() { }
 
-		private void Update(float delta)
+		private void Update()
 		{
+			let dt = Time.[Friend]Update();
+
 			_inputManager.Update();
 
 			DeleteQueuedComponents();
 			DeleteQueuedEntities();
+
 			for (let system in _systems)
 			{
 				system.[Friend]PreUpdate();
-				system.[Friend]Update(delta);
+				system.[Friend]Update(dt);
 				system.[Friend]PostUpdate();
 			}
+
+			OnUpdate();
 		}
 
 		private void Draw()
