@@ -5,13 +5,20 @@ using System.Diagnostics;
 
 namespace SteelEngine
 {
+	public delegate void LogCallback(LogLevel level, StringView message);
+
 	public static class Log
 	{
 		public static LogLevel LogLevel = .Trace;
 
 		private static List<StreamWriter> _handles = new .() ~ delete _;
+		private static List<LogCallback> _callbacks = new .() ~ delete _;
 
 		public static void AddHandle(StreamWriter handle) => _handles.Add(handle);
+		public static bool RemoveHandle(StreamWriter handle) => _handles.Remove(handle);
+
+		public static void AddCallback(LogCallback cb) => _callbacks.Add(cb);
+		public static bool RemoveCallback(LogCallback cb) => _callbacks.Remove(cb);
 
 		public static void Trace(StringView format, params Object[] args) => Print(.Trace, format, params args);
 		public static void Info(StringView format, params Object[] args) => Print(.Info, format, params args);
@@ -55,6 +62,9 @@ namespace SteelEngine
 			// Print the line to all handles
 			for (var handle in _handles)
 				handle.WriteLine(line);
+
+			for (var cb in _callbacks)
+				cb(level, message);
 
 			Console.ForegroundColor = origin; // Set color back to original
 		}
