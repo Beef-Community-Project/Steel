@@ -1,6 +1,6 @@
 using SteelEngine.Math;
 
-namespace SteelEngine.Math
+namespace SteelEngine
 {
 	typealias Vector2 = Vector2<float>;
 	typealias Vector3 = Vector3<float>;
