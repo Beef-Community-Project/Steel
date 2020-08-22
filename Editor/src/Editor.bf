@@ -334,13 +334,14 @@ namespace SteelEditor
 				var str = scope String();
 				for (var char in enumerator)
 				{
-					if (!char.IsDigit && char != '.')
+					if ((char == ']' || char == ',' || char.IsWhiteSpace) && char != '.')
 						break;
 					str.Append(char);
 				}
+
 				enumerator.[Friend]mIndex--;
 				
-				return new box float.Parse(str).Get();
+				return new box (float) double.Parse(str).Get();
 			}
 
 			Object ParseString(ref Span<char8>.Enumerator enumerator)
@@ -365,6 +366,12 @@ namespace SteelEditor
 				delete str;
 				return new box val;
 			}
+		}
+
+		public static void ResetStyle()
+		{
+			var style = ref ImGui.GetStyle();
+			style = GetInstance<Editor>()._editorLayer.[Friend]_originalStyle;
 		}
 	}
 }

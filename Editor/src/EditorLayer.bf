@@ -12,10 +12,10 @@ namespace SteelEditor
 	{
 		private Window _window;
 		private List<EditorWindow> _editorWindows = new .();
-
 		private bool _showDemoWindow = false;
 
 		private String _iniPath = new .() ~ delete _;
+		private ImGui.Style _originalStyle;
 
 		public this(Window window) : base("EditorLayer")
 		{
@@ -35,6 +35,8 @@ namespace SteelEditor
 			style.WindowMenuButtonPosition = .None; // This disables the collapse button on windows
 			style.WindowRounding = 0f;
 			ImGui.StyleColorsClassic(&style);
+
+			_originalStyle = style;
 
 			ImGuiImplGlfw.InitForOpenGL(_window.GetHandle, true);
 			ImGuiImplOpengl3.Init(=> Glfw.GetProcAddress);

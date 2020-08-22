@@ -9,7 +9,15 @@ namespace SteelEditor.Windows
 
 		public override void OnRender()
 		{
-			EditorGUI.AlignFromRight(60);
+			EditorGUI.AlignFromRight(170);
+			if (EditorGUI.Button("Reset"))
+				Editor.ResetStyle();
+
+			EditorGUI.SameLine();
+			if (EditorGUI.Button("Reload"))
+				Editor.LoadConfig();
+
+			EditorGUI.SameLine();
 			if (EditorGUI.Button("Save"))
 				Editor.SaveConfig();
 
