@@ -16,6 +16,18 @@ namespace SteelEditor
 		private static bool _popItemID = false;
 		private static uint _treeCount = 0;
 
+		// Window
+
+		public static bool BeginWindow(StringView name, ref bool isActive)
+		{
+			return ImGui.Begin(name.Ptr, &isActive);
+		}
+
+		public static void EndWindow()
+		{
+			ImGui.End();
+		}
+
 		// Text
 
 		public static void Text(StringView fmt, params Object[] args)

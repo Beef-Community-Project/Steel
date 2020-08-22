@@ -9,10 +9,11 @@ namespace SteelEditor.Windows
 
 		public override void OnRender()
 		{
-			ImGui.ShowStyleEditor();
-
+			EditorGUI.AlignFromRight(60);
 			if (EditorGUI.Button("Save"))
 				Editor.SaveConfig();
+
+			ImGui.ShowStyleEditor();
 		}
 	}
 }

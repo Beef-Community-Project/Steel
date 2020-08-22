@@ -19,10 +19,10 @@ namespace SteelEditor
 			if (!IsActive)
 				return;
 
-			if (ImGui.Begin(Title.Ptr, &IsActive, .None))
+			if (EditorGUI.BeginWindow(Title, ref IsActive))
 			{
 				OnRender();
-				ImGui.End();
+				EditorGUI.EndWindow();
 			}
 		}
 

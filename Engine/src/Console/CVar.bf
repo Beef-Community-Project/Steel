@@ -79,10 +79,10 @@ namespace SteelEngine.Console
 	}
 
 	
-	class EnumConsoleVar<TEnum> : ConsoleVar<TEnum> where TEnum: Enum
+	class EnumConsoleVar<TEnum> : ConsoleVar<TEnum> where TEnum : Enum
 	{
-		public override int32 GetValueInt32() { return (*_value); }
-		public override int64 GetValueInt64() { return (*_value); }
+		public override int32 GetValueInt32() { return (int32) (*_value); }
+		public override int64 GetValueInt64() { return (int32) (*_value); }
 		public override float GetValueFloat() { return (int)(*_value); }
 
 
