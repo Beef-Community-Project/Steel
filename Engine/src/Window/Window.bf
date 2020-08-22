@@ -3,16 +3,10 @@ using glfw_beef;
 
 using SteelEngine.Events;
 using SteelEngine.GL;
+using SteelEngine.Math;
 
 namespace SteelEngine.Window
 {
-	// NOTE(Sheep): temporary vector struct
-	struct Vector2<T>
-	{
-		public T X;
-		public T Y;
-	}
-
 	// WindowConfig is used to specify properties of a Window before initializing it.
 	// Only Width and Height are necessary. The rest is optional and has sensible default parameters
 	struct WindowConfig
@@ -51,8 +45,8 @@ namespace SteelEngine.Window
 
 		public this(WindowConfig cfg, EventCallback callback)
 		{
-			this._size.X = cfg.Width;
-			this._size.Y = cfg.Height;
+			this._size.x = cfg.Width;
+			this._size.y = cfg.Height;
 			this._vSync = cfg.VSync;
 			this._eventCallback = callback;
 			
@@ -62,10 +56,10 @@ namespace SteelEngine.Window
 				Log.Fatal("Could not initialize GLFW");
 			}
 
-			/*Glfw.WindowHint(GlfwWindow.Hint.ContextVersionMajor, 4);
+			Glfw.WindowHint(GlfwWindow.Hint.ContextVersionMajor, 4);
 			Glfw.WindowHint(GlfwWindow.Hint.ContextVersionMinor, 6);
 			Glfw.WindowHint(GlfwWindow.Hint.OpenGlProfile, .CoreProfile);
-			Glfw.WindowHint(GlfwWindow.Hint.OpenGlForwardCompat, Glfw.TRUE);*/
+			Glfw.WindowHint(GlfwWindow.Hint.OpenGlForwardCompat, Glfw.TRUE);
 
 			// TODO(Sheep): few other flags to set
 			Glfw.WindowHint(GlfwWindow.Hint.Decorated, !cfg.Undecorated);
@@ -98,8 +92,8 @@ namespace SteelEngine.Window
 			// Resize callback
 			void sizeC(GlfwWindow* window, int width, int height)
 			{
-				_size.X = width;
-				_size.Y = height;
+				_size.x = width;
+				_size.y = height;
 				WindowResizeEvent event = scope WindowResizeEvent(width, height);
 				_eventCallback(event);
 			}	

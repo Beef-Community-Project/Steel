@@ -31,10 +31,35 @@ namespace SteelEngine
 
 		public this()
 		{
-			Log.Trace("Initiating application");
-
 			Instance = this;
-			Log.AddHandle(Console.Out);
+
+			Log.AddCallback(new (str, level) =>
+			{
+				ConsoleColor color;
+
+				switch (level)
+				{
+				case .Trace:
+					color = .Gray;
+					break;
+				case .Info:
+					color = .White;
+					break;
+				case .Warning:
+					color = .Yellow;
+					break;
+				case .Error, .Fatal:
+					color = .Red;
+					break;
+				}
+
+				var origin = Console.ForegroundColor;
+				Console.ForegroundColor = color;
+				Console.WriteLine(str);
+				Console.ForegroundColor = origin;
+			});
+
+			Log.Trace("Initializing application");
 
 			_components = new Dictionary<ComponentId, BaseComponent>();
 			_componentsToDelete = new List<BaseComponent>();
@@ -70,6 +95,8 @@ namespace SteelEngine
 			for (let item in _components)
 				delete item.value;
 
+			_components.Clear();
+
 			for (let item in Entity.EntityStore)
 				delete item.value;
 		}
@@ -102,7 +129,7 @@ namespace SteelEngine
 
 		public Entity CreateEntity()
 		{
-			return new Entity(this);
+			return new Entity();
 		}
 
 		public void Run()
@@ -126,6 +153,7 @@ namespace SteelEngine
 
 			Glfw.SetErrorCallback(_errorCallback, true);
 
+			Time.[Friend]Initialize();
 			_inputManager.Initialize();
 			for (let system in _systems)
 			{
@@ -140,7 +168,7 @@ namespace SteelEngine
 
 			while (_isRunning)
 			{
-				Update(0f); // Should eventually send a delta representing the time between frames.
+				Update();
 				Draw();
 			}
 		}
@@ -154,8 +182,6 @@ namespace SteelEngine
 		// Gets called when an event occurs in the window
 		public void OnEvent(Event event)
 		{
-			_inputManager.OnEvent(event);
-
 			var dispatcher = scope EventDispatcher(event);
 			dispatcher.Dispatch<WindowCloseEvent>(scope => OnWindowClose);
 
@@ -163,8 +189,10 @@ namespace SteelEngine
 			{
 				layer.OnEvent(event);
 				if (event.IsHandled)
-					break;
+					return;
 			}
+
+			_inputManager.OnEvent(event);
 		}
 
 		private void OnGlfwError(Glfw.Error error)
@@ -178,22 +206,28 @@ namespace SteelEngine
 			return true;
 		}
 
+		protected virtual void OnUpdate() { }
 
-		private void Update(float delta)
+		private void Update()
 		{
+			let dt = Time.[Friend]Update();
+
 			_inputManager.Update();
 
 			DeleteQueuedComponents();
 			DeleteQueuedEntities();
+
 			for (let system in _systems)
 			{
 				system.[Friend]PreUpdate();
-				system.[Friend]Update(delta);
+				system.[Friend]Update(dt);
 				system.[Friend]PostUpdate();
 			}
 
 			for (var layer in _layerStack)
 				layer.OnUpdate();
+
+			OnUpdate();
 		}
 
 		public void PushLayer(Layer layer)

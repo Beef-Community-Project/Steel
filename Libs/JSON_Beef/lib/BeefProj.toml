@@ -1,0 +1,13 @@
+FileVersion = 1
+Dependencies = {corlib = "*", corlib = "*", BeefExtensionsLib = "*"}
+
+[Project]
+Name = "JSON_Beef"
+
+[[Project.DistinctOptions]]
+Filter = "System.Collections.List<*>"
+ReflectAlwaysInclude = "IncludeAll"
+ReflectStaticMethods = true
+ReflectNonStaticMethods = true
+ReflectConstructors = true
+ReflectMethodFilter = "__BfCtor; Add"
