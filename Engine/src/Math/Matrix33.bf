@@ -1,6 +1,7 @@
 using System;
+using SteelEngine.Math;
 
-namespace SteelEngine.Math
+namespace SteelEngine
 {
 	[CRepr, Union]
 	public struct Matrix33<T> 

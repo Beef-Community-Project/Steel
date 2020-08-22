@@ -50,7 +50,7 @@ namespace SteelEngine
 	}
 }
 
-namespace SteelEngine.Math
+namespace SteelEngine
 {
 	extension Vector4<T>
 	{

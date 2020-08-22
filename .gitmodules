@@ -3,4 +3,11 @@
 	url = https://github.com/qzole/imgui-beef
 [submodule "GLFW"]
 	path = Libs/GLFW
+<<<<<<< HEAD
 	url = https://github.com/MineGame159/glfw-beef
+=======
+	url = https://github.com/MineGame159/glfw-beef.git
+[submodule "BGFX"]
+	path = Libs/BGFX
+	url = https://github.com/ExoKomodo/Bgfx-bf
+>>>>>>> da5ddaf0d90d5a0f564bed8f344781c03ee00d1e

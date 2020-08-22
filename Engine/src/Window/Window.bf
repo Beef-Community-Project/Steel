@@ -3,7 +3,7 @@ using glfw_beef;
 
 using SteelEngine.Events;
 using SteelEngine.GL;
-using SteelEngine.Math;
+using SteelEngine;
 
 namespace SteelEngine.Window
 {
@@ -45,8 +45,7 @@ namespace SteelEngine.Window
 
 		public this(WindowConfig cfg, EventCallback callback)
 		{
-			this._size.x = cfg.Width;
-			this._size.y = cfg.Height;
+			this._size = .(cfg.Width, cfg.Height);
 			this._vSync = cfg.VSync;
 			this._eventCallback = callback;
 			
@@ -92,8 +91,7 @@ namespace SteelEngine.Window
 			// Resize callback
 			void sizeC(GlfwWindow* window, int width, int height)
 			{
-				_size.x = width;
-				_size.y = height;
+				_size = .(width, height);
 				WindowResizeEvent event = scope WindowResizeEvent(width, height);
 				_eventCallback(event);
 			}	

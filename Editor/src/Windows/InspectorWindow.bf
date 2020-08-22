@@ -3,7 +3,6 @@ using System.Collections;
 using SteelEngine.ECS;
 using SteelEngine.ECS.Components;
 using SteelEngine;
-using SteelEngine.Math;
 using System.Reflection;
 using imgui_beef;
 

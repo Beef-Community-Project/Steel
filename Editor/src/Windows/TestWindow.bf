@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using SteelEngine;
-using SteelEngine.Math;
 
 namespace SteelEditor.Windows
 {
