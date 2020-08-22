@@ -1,12 +1,3 @@
-[submodule "GLFW"]
-	path = Libs/GLFW
-	url = https://github.com/MineGame159/glfw-beef
 [submodule "ImGui"]
 	path = Libs/ImGui
 	url = https://github.com/qzole/imgui-beef
-[submodule "BGFX"]
-	path = Libs/BGFX
-	url = https://github.com/ExoKomodo/Bgfx-bf
-[submodule "BeefToml"]
-	path = Libs/BeefToml
-	url = https://github.com/killamaaki/Beef-Toml
