@@ -30,9 +30,10 @@ namespace SteelEditor
 
 			var io = ref ImGui.GetIO();
 			io.IniFilename = _iniPath;
-
+			
 			var style = ref ImGui.GetStyle();
 			style.WindowMenuButtonPosition = .None; // This disables the collapse button on windows
+			style.WindowRounding = 0f;
 			ImGui.StyleColorsClassic(&style);
 
 			ImGuiImplGlfw.InitForOpenGL(_window.GetHandle, true);
@@ -151,10 +152,15 @@ namespace SteelEditor
 		{
 			if (!window.IsActive)
 			{
-				Log.Trace("Showing window ({})", window.Title);
-
 				window.IsActive = true;
-				window.OnInit();
+
+				if (!window.[Friend]_isInitialized)
+				{
+					window.OnInit();
+					window.[Friend]_isInitialized = true;
+				}
+
+				window.OnShow();
 				window.IsClosed = false;
 			}
 		}
@@ -174,8 +180,6 @@ namespace SteelEditor
 
 		public void CloseWindow(EditorWindow window)
 		{
-			Log.Trace("Closing window ({})", window.Title);
-
 			window.IsActive = false;
 			window.OnClose();
 			window.IsClosed = true;

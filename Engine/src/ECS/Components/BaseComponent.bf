@@ -7,6 +7,7 @@ namespace SteelEngine.ECS.Components
 	/// Abstract class defining all Components.
 	/// A class derived from Component will be managed by an appropriate <see cref="SteelEngine.ECS.Systems.System"/>.
 	/// </summary>
+	[Reflect]
 	public abstract class BaseComponent
 	{
 		public this(bool isEnabled = true, Entity parent = null)

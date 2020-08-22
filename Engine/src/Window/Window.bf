@@ -56,10 +56,10 @@ namespace SteelEngine.Window
 				Log.Fatal("Could not initialize GLFW");
 			}
 
-			/*Glfw.WindowHint(GlfwWindow.Hint.ContextVersionMajor, 4);
+			Glfw.WindowHint(GlfwWindow.Hint.ContextVersionMajor, 4);
 			Glfw.WindowHint(GlfwWindow.Hint.ContextVersionMinor, 6);
 			Glfw.WindowHint(GlfwWindow.Hint.OpenGlProfile, .CoreProfile);
-			Glfw.WindowHint(GlfwWindow.Hint.OpenGlForwardCompat, Glfw.TRUE);*/
+			Glfw.WindowHint(GlfwWindow.Hint.OpenGlForwardCompat, Glfw.TRUE);
 
 			// TODO(Sheep): few other flags to set
 			Glfw.WindowHint(GlfwWindow.Hint.Decorated, !cfg.Undecorated);

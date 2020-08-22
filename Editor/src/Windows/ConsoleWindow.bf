@@ -13,109 +13,107 @@ namespace SteelEditor.Windows
 	{
 		public override StringView Title => "Console";
 
-		public ImGui.Vec4 TraceColor = .(0.603f, 0.603f, 0.035f, 1f);
-		public ImGui.Vec4 WarningColor = .(0.93f, 0.82f, 0.01f, 1f);
-		public ImGui.Vec4 ErrorColor = .(0.952f, 0.2f, 0.011f, 1f);
+		public Color TraceColor = .(0.603f, 0.603f, 0.035f, 1f);
+		public Color WarningColor = .(0.93f, 0.82f, 0.01f, 1f);
+		public Color ErrorColor = .(0.952f, 0.2f, 0.011f, 1f);
 
 		private String _commandBuffer = new .() ~ delete _;
 		private List<(String str, LogLevel level)> _log = new .() ~ { ClearLog(); delete _log; };
 
 		private bool _scrollToBottom = false;
-		private LogLevel _minLogLevel = .Trace;
-		private ConsoleType _consoleType = .Log;
 		private GameConsole _gameConsole = new .() ~ delete _;
 
 		private int _commandStartIndex = 0;
 		private int _commandIndex = 0;
 		private int _newCommandIndex = 1;
 
-		private EditorGUI.HistoryCallback _historyCallback = new => OnCommandHistoryChange ~ delete _;
+		private bool _showErrors = true;
+		private bool _showWarnings = true;
+		private bool _showInfo = true;
+		private bool _showTrace = true;
 
-		private const float consoleComboWidth = 86;
-		private const float clearButtonOffset = 55;
-		private const float levelComboWidth   = 100;
+		private const float CLEAR_BUTTON_OFFSET = 55;
 
 		public override void OnInit()
 		{
 			Log.AddCallback(new (str, level) => _log.Add((new String(str), level)));
+
+			_gameConsole.Initialize();
 		}
 
 		public override void OnRender()
 		{
-			ImGui.PushItemWidth(consoleComboWidth);
-			EditorGUI.Combo<ConsoleType>("Console:", ref _consoleType);
-			ImGui.PopItemWidth();
+			EditorGUI.ToggleButton("Errors", ref _showErrors);
 
-			ImGui.SameLine(ImGui.GetWindowWidth() - clearButtonOffset);
+			EditorGUI.AlignFromRight(CLEAR_BUTTON_OFFSET);
 			if (EditorGUI.Button("Clear"))
-				Clear();
+				_gameConsole.Clear();
 
-			ImGui.PushItemWidth(levelComboWidth);
-			EditorGUI.Combo<LogLevel>("Level:", ref _minLogLevel);
-			ImGui.PopItemWidth();
+			EditorGUI.ToggleButton("Warnings", ref _showWarnings);
+			EditorGUI.ToggleButton("Info", ref _showInfo);
+			EditorGUI.ToggleButton("Trace", ref _showTrace);
 
-			var footerSpacing = ImGui.GetStyle().ItemSpacing.y + ImGui.GetFrameHeightWithSpacing();
-			ImGui.BeginChild("CommandScrollingRegion", .(0, -footerSpacing), false, .HorizontalScrollbar);
+			var footerSpacing = EditorGUI.GetHeightOfItems(1);
+			EditorGUI.BeginScrollingRegion("CommandScrollingRegion", -footerSpacing);
 
-			if (_consoleType == .Game)
+			for (var line in _gameConsole.[Friend]_lines)
 			{
-				for (int i = _commandStartIndex; i < _gameConsole.History.Count; i++)
-					ImGui.Text(scope String()..AppendF("> {}\n", StringView(_gameConsole.History.AtIndex(i))));
-			}
-			else
-			{
-				for (var message in _log)
+				if (!_showErrors && line.level == .Error ||
+					!_showWarnings && line.level == .Warning ||
+					!_showInfo && line.level == .Info ||
+					!_showTrace && line.level == .Trace)
+					continue;
+
+				bool hasColor = true;
+				Color color = .();
+
+				switch (line.level)
 				{
-					if (message.level < _minLogLevel)
-						continue;
-
-					bool hasColor = true;
-					ImGui.Vec4 color = .();
-
-					switch (message.level)
-					{
-					case .Trace:
-						color = TraceColor;
-						break;
-					case .Warning:
-						color = WarningColor;
-						break;
-					case .Error:
-						color = ErrorColor;
-						break;
-					default:
-						hasColor = false;
-					}
-
-					ImGui.PushStyleColor(.Text, color);
-					ImGui.TextUnformatted(message.str.Ptr);
-					ImGui.PopStyleColor();
+				case .Trace:
+					color = TraceColor;
+					break;
+				case .Warning:
+					color = WarningColor;
+					break;
+				case .Error:
+					color = ErrorColor;
+					break;
+				default:
+					hasColor = false;
 				}
+
+				if (hasColor)
+					EditorGUI.TextColor(color);
+
+				EditorGUI.Text(line.message);
 			}
 
 			if (_scrollToBottom)
 			    ImGui.SetScrollHereY(1.0f);
 			_scrollToBottom = false;
 
-			ImGui.EndChild();
+			EditorGUI.EndScrollingRegion();
 			
 			EditorGUI.Line();
-			ImGui.PushItemWidth(-10);
-			if (EditorGUI.Input(scope String()..AppendF("##CommandInputBuffer_{}", _commandIndex), _commandBuffer, "", 256, _historyCallback) && !_commandBuffer.IsEmpty)
+			EditorGUI.FillWidth();
+			var inputCallback = EditorGUI.Input(scope String()..AppendF("##CommandInputBuffer_{}", _commandIndex), _commandBuffer, "", 256);
+			if (inputCallback.OnEnter && !_commandBuffer.IsEmpty)
 			{
-				_consoleType = .Game;
-				_gameConsole.History.Add(_commandBuffer);
+				_gameConsole.AddHistory(_commandBuffer);
 
 				ImGui.SetKeyboardFocusHere(-1);
 				_scrollToBottom = true;
 
-				_gameConsole.Execute(_commandBuffer);
+				_gameConsole.Enqueue(_commandBuffer);
 				ClearCommandBuffer();
 			}
-			ImGui.PopItemWidth();
+			else if (inputCallback.OnHistory(let direction))
+			{
+				OnCommandHistory(direction);
+			}
 		}
 
-		private void OnCommandHistoryChange(VerticalDirection dir)
+		private void OnCommandHistory(VerticalDirection dir)
 		{
 			if (dir == .Up && _commandIndex > _commandStartIndex)
 				_commandIndex--;
@@ -123,14 +121,6 @@ namespace SteelEditor.Windows
 				_commandIndex++;
 
 			ImGui.SetKeyboardFocusHere(-1);
-		}
-
-		public void Clear()
-		{
-			if (_consoleType == .Log)
-				ClearLog();
-			else
-				ClearCommands();
 		}
 
 		public void ClearLog()

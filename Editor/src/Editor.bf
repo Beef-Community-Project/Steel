@@ -3,6 +3,7 @@ using System.Collections;
 using System.IO;
 using SteelEngine;
 using SteelEngine.Window;
+using SteelEngine.ECS;
 using SteelEditor.Windows;
 using JetFistGames.Toml;
 using imgui_beef;
@@ -12,8 +13,9 @@ namespace SteelEditor
 	public class Editor : Application
 	{
 		private EditorLayer _editorLayer;
-
 		private EditorConfig _config = new .();
+
+		private Dictionary<EntityId, String> _entityNames = new .();
 
 		public override void OnInit()
 		{
@@ -23,6 +25,8 @@ namespace SteelEditor
 			AddWindow<TestWindow>();
 			AddWindow<StyleWindow>();
 			AddWindow<ConsoleWindow>();
+			AddWindow<InspectorWindow>();
+			
 
 			if (LoadConfig() case .Ok)
 			{
@@ -33,7 +37,7 @@ namespace SteelEditor
 					ShowWindow(window);
 			}
 			
-			ShowWindow<ConsoleWindow>();
+			ShowWindow<InspectorWindow>();
 		}
 
 		public override void OnCleanup()
@@ -41,6 +45,24 @@ namespace SteelEditor
 			SaveConfig();
 
 			delete _config;
+
+			for (var value in _entityNames.Values)
+				delete value;
+			delete _entityNames;
+		}
+
+		public static void GetEntityName(EntityId id, String buffer)
+		{
+			var editor = GetInstance<Editor>();
+			if (!editor._entityNames.ContainsKey(id))
+				SetEntityName(id, "Entity");
+
+			buffer.Append(editor._entityNames[id]);
+		}
+
+		public static void SetEntityName(EntityId id, StringView name)
+		{
+			GetInstance<Editor>()._entityNames[id] = new .(name);
 		}
 
 		public static void ShowWindow<T>() where T : EditorWindow

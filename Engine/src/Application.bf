@@ -31,9 +31,8 @@ namespace SteelEngine
 
 		public this()
 		{
-			Log.Trace("Initiating application");
-
 			Instance = this;
+
 			Log.AddCallback(new (str, level) =>
 			{
 				ConsoleColor color;
@@ -59,6 +58,8 @@ namespace SteelEngine
 				Console.WriteLine(str);
 				Console.ForegroundColor = origin;
 			});
+
+			Log.Trace("Initializing application");
 
 			_components = new Dictionary<ComponentId, BaseComponent>();
 			_componentsToDelete = new List<BaseComponent>();
@@ -94,6 +95,8 @@ namespace SteelEngine
 			for (let item in _components)
 				delete item.value;
 
+			_components.Clear();
+
 			for (let item in Entity.EntityStore)
 				delete item.value;
 		}
@@ -126,7 +129,7 @@ namespace SteelEngine
 
 		public Entity CreateEntity()
 		{
-			return new Entity(this);
+			return new Entity();
 		}
 
 		public void Run()

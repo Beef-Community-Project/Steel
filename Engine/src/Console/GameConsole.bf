@@ -1,121 +1,277 @@
 using System;
 using System.Collections;
+using System.IO;
+using SteelEngine.Console;
 
-namespace SteelEngine.Console
+namespace SteelEngine
 {
 	class GameConsole
 	{
 		const int HISTORY_SIZE = 50;
 
-		private Dictionary<StringView, CVar> _cvars = new Dictionary<StringView, CVar>() ~ delete _;
-		private Queue<String> _enqueuedCommands = new Queue<String>() ~ delete _;
+		struct ConfigVarValue : IDisposable
+		{
+			public String line;
+			public StringView[] args;
 
-		public CommandHistory History = new CommandHistory(HISTORY_SIZE) ~ delete _;
+			public void Dispose()
+			{
+				delete line;
+				delete args;
+			}
+		}
 
-		protected bool _cvarCheatsEnabled = false;
-		protected float _cvarWaitTime = 0;
-		protected int _cvarWaitFrames = 0;
+		public struct LineEntry : IDisposable
+		{
+			public LogLevel level;
+			public String message;
+
+			public void Dispose()
+			{
+				delete message;
+			}
+		}
+
+		static Self _instance;
+		public static Self Instance => _instance;
+
+		Dictionary<StringView, CVar> _cvars = new Dictionary<StringView, CVar>() ~ delete _;
+		Dictionary<StringView, OnCVarChange> _cvarChangedCallbacks = new Dictionary<StringView, OnCVarChange>() ~ delete _;
+		Dictionary<StringView, ConfigVarValue> _configVars = new Dictionary<StringView, ConfigVarValue>() ~ delete _;
+		Queue<String> _enqueuedCommands = new Queue<String>() ~ DeleteContainerAndItems!(_);
+		CommandsHistory _history = new CommandsHistory(HISTORY_SIZE) ~ delete _;
+
+		int _maxLines = 1000;
+		List<LineEntry> _lines = new List<LineEntry>() ~ delete _;
+
+		public CommandsHistory History => _history;
+
+		bool _cvarCheatsEnabled = false;
+		float _cvarWaitTime = 0;
+		int _cvarWaitFrames = 0;
 		
-		public LogLevel LogLevel { get; set; }
+		public LogLevel logLevel = .Trace;
+
+		bool _opened = false;
+		public bool IsOpen = _opened;
 
 		public this()
 		{
-			RegisterCVar("sv.cheats", "Enable execution of commands with Cheat flag.", ref _cvarCheatsEnabled);
-			RegisterCVar("wait.frames", "Wait number of frames before continuing execution of commands.", ref _cvarWaitFrames);
-			RegisterCVar("wait.seconds", "Wait number of real time seconds before continuing execution of commands.", ref _cvarWaitTime);
-
-
-			RegisterCommand("echo", "", new (cmd, line, args) =>
-		    {
-				if (line.Length <= 4)
-					return false;
-
-				let cmdNameLength = cmd.Name.Length + 1;
-				let str = StringView(line, cmdNameLength, line.Length - cmdNameLength);
-				if (!str.IsEmpty)
-					Log.Info(str);
-
-				return true;
-		    });
-
-			RegisterCommand("help", "Show list of variables and commands", new (cmd, line, args) =>
-			{
-				StringView filter = default;
-				if(args.Length >= 1)
-				{
-					filter = args[0];
-				}
-
-				for(let v in _cvars)
-				{
-					Log.Info("{0} - {1}", v.key, v.value.Help);
-				}
-
-				return true;
-			});
+			_instance = this;
 		}
 
 		public ~this()
 		{
 		 	for (let cvar in _cvars.Values)
 				delete cvar;
+
+			for (let cb in _cvarChangedCallbacks.Values)
+				delete cb;
+
+			for (let val in _configVars.Values)
+				val.Dispose();
+
+			Clear();
+		}
+
+		public void Initialize(Span<String> configFiles)
+		{
+			for (var file in configFiles)
+			{
+				if (LoadConfigFile(file) case .Err(let err))
+				{
+					Log.Error("Couldn't open configuration file {0} ({1})", file, err);
+				}
+			}
+
+			Initialize();
+		}
+
+		public void Initialize()
+		{
+			Log.AddCallback(new => OnLogCallback);
+				
+			RegisterVariable("console.loglevel", "Minimal level message need to be to be logged into console", ref logLevel, .Config);
+			RegisterVariable("sv.cheats", "Enable execution of commands with Cheat flag.", ref _cvarCheatsEnabled);
+			RegisterVariable("wait.frames", "Wait number of frames before continuing execution of commands.", ref _cvarWaitFrames);
+			RegisterVariable("wait.seconds", "Wait number of real time seconds before continuing execution of commands.", ref _cvarWaitTime);
+
+			RegisterCommand("echo", "Print message", new (line, args) =>
+			{
+				PrintInfo(line);
+			});
+
+			RegisterCommand("help", "Show list of variables and commands", new (line, args) =>
+			{
+				StringView filter = args.Length > 0 ? args[0] : default;
+
+				String buffer = scope .();
+
+				for (let cvar in _cvars.Values)
+				{
+					if (!cvar.HasFlags(.Hidden) && (filter.IsEmpty || cvar.Name.Contains(filter)))
+					{
+						buffer.Append("    ");
+						buffer.Append(cvar.Name);
+						if (!cvar.Help.IsEmpty)
+							buffer.AppendF(" - {0}", cvar.Help);
+						buffer.Append("\n");
+					}
+				}
+
+				PrintInfo(buffer);
+			});
+
+			RegisterCommand("exec", "Execute file", new (line, args) =>
+			{
+				if (ExecuteFile(args[0]) case .Err(let err))
+				{
+					PrintErrorF("Couldn't execute file {0} ({1}).", args[0], err);
+				}
+			});
+	
+			RegisterCommand("cls", "Clear console", new () =>
+			{
+				Clear();
+			});
+		}
+
+		void OnLogCallback(StringView message, LogLevel logLevel)
+		{
+			if (logLevel < this.logLevel)
+				return;
+
+			PrintLine(logLevel, message);
+		}
+
+		public void Open()
+		{
+			_opened = true;
+		}
+
+		public void Close()
+		{
+			_opened = false;
 		}	
+
+		public void Toggle()
+		{
+			_opened = !_opened;
+		}
+
+		public void Clear()
+		{
+			for (let l in _lines)
+				l.Dispose();
+
+			_lines.Clear();
+		}
+
+		
+		protected void PrintLine(LogLevel logLevel, StringView message)
+		{
+			if (_lines.Count >= _maxLines)
+			{
+				_lines.PopFront().Dispose();
+			}
+
+			_lines.Add(LineEntry() { level = logLevel, message = new .(message) });
+		}
+
+		protected void PrintLineF(LogLevel logLevel, StringView format, params Object[] args)
+		{
+			String buffer = scope .();
+			buffer.AppendF(format, params args);
+			PrintLine(logLevel, buffer);
+		}
+
+		public void PrintInfo(StringView message) => PrintLine(.Info, message);
+		public void PrintInfoF(StringView format, params Object[] args) => PrintLineF(.Info, format, params args);
+		public void PrintWarning(StringView message) => PrintLine(.Warning, message);
+		public void PrintWarningF(StringView format, params Object[] args) => PrintLineF(.Warning, format, params args);
+		public void PrintError(StringView message) => PrintLine(.Warning, message);
+		public void PrintErrorF(StringView format, params Object[] args) => PrintLineF(.Warning, format, params args);
 
 		protected mixin CheckCVarRegistered(StringView name)
 		{
 			if (_cvars.TryGetValue(name, let cvar))
 			{
-				Log.Warning("CVar '{0}' already registered!", name);
+				Log.Warning("CVar {0} already registered!", name);
 				return cvar;
 			}
 		}
 
-		public CVar RegisterCVar(StringView name, StringView help, ref bool varRef, CVarFlags flags = .None, OnCVarChange onChange = null)
+		protected void LoadConfigVarValue(CVar cvar)
 		{
-			CheckCVarRegistered!(name);
-			let cvar = new ConsoleVar<bool>(name, help, &varRef, flags, onChange);
+			if (_configVars.GetAndRemove(cvar.Name) case .Ok(var val))
+			{
+				if (cvar.Execute(val.value.line, val.value.args) case .Ok)
+				{
+					cvar.AddFlags(.WasInConfig);
+				}
+				else
+				{
+					Log.Error("Error occurred while setting configuration variable. Can't set value of {0} to {1}", cvar.Name, val.value.args[0]);
+				}
+				val.value.Dispose();
+			} 
+		}
+
+		protected CVar RegisterCVar(CVar cvar, OnCVarChange onChange)
+		{
+			if (cvar.HasFlags(.Config))
+				LoadConfigVarValue(cvar);
+
+			if (onChange != null)
+				_cvarChangedCallbacks[cvar.Name] = onChange;
+
 			return _cvars[cvar.Name] = cvar;
 		}
 
-		public CVar RegisterCVar(StringView name, StringView help, ref int32 varRef, CVarFlags flags = .None, OnCVarChange onChange = null)
+		public CVar RegisterVariable(StringView name, StringView help, ref bool varRef, CVarFlags flags = .None, OnCVarChange onChange = null)
 		{
 			CheckCVarRegistered!(name);
-			let cvar = new ConsoleVar<int32>(name, help, &varRef, flags, onChange);
-			return _cvars[cvar.Name] = cvar;
+			return RegisterCVar(new ConsoleVar<bool>(name, help, &varRef, flags), onChange);
 		}
 
-		public CVar RegisterCVar(StringView name, StringView help, ref int64 varRef, CVarFlags flags = .None, OnCVarChange onChange = null)
+		public CVar RegisterVariable(StringView name, StringView help, ref int32 varRef, CVarFlags flags = .None, OnCVarChange onChange = null)
 		{
 			CheckCVarRegistered!(name);
-			let cvar = new ConsoleVar<int64>(name, help, &varRef, flags, onChange);
-			return _cvars[cvar.Name] = cvar;
+			return RegisterCVar(new ConsoleVar<int32>(name, help, &varRef, flags), onChange);
 		}
 
-		public CVar RegisterCVar(StringView name, StringView help, ref float varRef, CVarFlags flags = .None, OnCVarChange onChange = null)
+		public CVar RegisterVariable(StringView name, StringView help, ref int64 varRef, CVarFlags flags = .None, OnCVarChange onChange = null)
 		{
 			CheckCVarRegistered!(name);
-			let cvar = new ConsoleVar<float>(name, help, &varRef, flags, onChange);
-			return _cvars[cvar.Name] = cvar;
+			return RegisterCVar(new ConsoleVar<int64>(name, help, &varRef, flags), onChange);
 		}
 
-		public CVar RegisterCVar(StringView name, StringView help, ref String varRef, CVarFlags flags = .None, OnCVarChange onChange = null)
+		public CVar RegisterVariable(StringView name, StringView help, ref float varRef, CVarFlags flags = .None, OnCVarChange onChange = null)
 		{
 			CheckCVarRegistered!(name);
-			let cvar = new ConsoleVar<String>(name, help, &varRef, flags, onChange);
-			return _cvars[cvar.Name] = cvar;
+			return RegisterCVar(new ConsoleVar<float>(name, help, &varRef, flags), onChange);
 		}
 
-		public CVar RegisterCVar<TEnum>(StringView name, StringView help, ref TEnum varRef, CVarFlags flags = .None, OnCVarChange onChange = null) where TEnum : Enum
+		public CVar RegisterVariable(StringView name, StringView help, ref String varRef, CVarFlags flags = .None, OnCVarChange onChange = null)
 		{
 			CheckCVarRegistered!(name);
-			let cvar = new EnumConsoleVar<TEnum>(name, help, &varRef, flags, onChange);
-			return _cvars[cvar.Name] = cvar;
+			return RegisterCVar(new ConsoleVar<String>(name, help, &varRef, flags), onChange);
 		}
 
-		public CVar RegisterCommand(StringView name, StringView help, OnCmdExecute onExecute, CVarFlags flags = .None)
+		public CVar RegisterVariable<TEnum>(StringView name, StringView help, ref TEnum varRef, CVarFlags flags = .None, OnCVarChange onChange = null) where TEnum : Enum
 		{
 			CheckCVarRegistered!(name);
-			let cvar = new ConsoleCommand(name, help, onExecute , flags);
+			return RegisterCVar(new EnumConsoleVar<TEnum>(name, help, &varRef, flags), onChange);
+		}
+
+		public CVar RegisterCommand(StringView name, StringView help, OnCmdExecute onExecute, CVarFlags flags = .None) => RegisterCommand<OnCmdExecute>(name, help, onExecute, flags);
+		public CVar RegisterCommand(StringView name, StringView help, OnCmdExecuteNoArgs onExecute, CVarFlags flags = .None) => RegisterCommand<OnCmdExecuteNoArgs>(name, help, onExecute, flags);
+		public CVar RegisterCommand(StringView name, StringView help, OnCmdExecuteLineArgs onExecute, CVarFlags flags = .None) => RegisterCommand<OnCmdExecuteLineArgs>(name, help, onExecute, flags);
+
+		protected CVar RegisterCommand<TDelegate>(StringView name, StringView help, TDelegate onExecute, CVarFlags flags) where TDelegate : Delegate
+		{
+			CheckCVarRegistered!(name);
+			let cvar = new ConsoleCommand<TDelegate>(name, help, onExecute, flags);
 			return _cvars[cvar.Name] = cvar;
 		}
 
@@ -123,6 +279,10 @@ namespace SteelEngine.Console
 		{
 			if (_cvars.GetAndRemove(name) case .Ok(let val))
 			{
+				if ( _cvarChangedCallbacks.TryGetValue(name, let cb))
+					delete cb;
+
+				delete val.value;
 				return true;
 			}
 			return false;
@@ -147,7 +307,6 @@ namespace SteelEngine.Console
 			
 			while (ConsoleLineParser.Tokenize(cmdLine, ref i, ref start, tokens))
 			{
-				System.Diagnostics.Debug.Assert(!tokens.IsEmpty);
 				StringView command = .(cmdLine, start, i - start);
 				ExecuteLineTokens(command, .(tokens.Ptr, tokens.Count));
 			}
@@ -156,35 +315,68 @@ namespace SteelEngine.Console
 		protected void ExecuteLineTokens(StringView line, Span<StringView> tokens)
 		{
 			let cmdName = tokens[0];
-			if (_cvars.TryGetValue(cmdName, let cvar))
+			if (_cvars.TryGetValue(cmdName, let cvar) && !cvar.HasFlags(.Hidden))
 			{
-				if (tokens.Length > 1 && tokens[1] == "?")
+				// If CVar is not command and there are no arguments specified just print its value
+				if (tokens.Length == 1 && !cvar.IsCommand)
 				{
 					String buffer = scope .();
-					cvar.GetValueString(buffer);
-					if (buffer.IsEmpty)
-						Log.Info("{0} - '{1}'", cvar.Name, cvar.Help);
-					else
-						Log.Info("{0} {1} - '{2}'", cvar.Name, buffer, cvar.Help);
+					cvar.ToString(buffer);
+					PrintInfo(buffer);
 
 					return;
 				}
-				
-				let result = cvar.Execute(line, .(tokens.Ptr+1, tokens.Length-1));
-				if (!result)
+
+				// If the command is entered with ? parameter show its description
+				if (tokens.Length > 1 && tokens[1] == "?")
 				{
-					Log.Error("Error occurred while executing '{0}'", cmdName);
+					String buffer = scope .();
+					buffer.AppendF("{0} ", cvar.Name);
+					let strVal = cvar.GetValueString(buffer);
+					if (!strVal.IsEmpty)
+						buffer.Append(' ');
+					
+					if (!cvar.Help.IsEmpty)
+						buffer.AppendF("- {0}", cvar.Help);
+
+					PrintInfo(buffer);
+					return;
+				}
+
+				if (cvar.HasFlags(.Cheat) && !_cvarCheatsEnabled)
+				{
+					PrintErrorF("{0} can only be executed when cheats are enabled.", cvar.Name);
+					return;
+				}
+
+				StringView strArgs = line;
+				if (tokens.Length > 1)
+				{
+					strArgs = .(line, tokens[1].Ptr - line.Ptr);
+				}	
+
+				let result = cvar.Execute(strArgs, .(tokens.Ptr+1, tokens.Length-1));
+				if (result case .Ok(let changed))
+				{
+					if ((changed || cvar.HasFlags(.AlwaysOnChange)) && _cvarChangedCallbacks.TryGetValue(cvar.Name, let callback))
+					{
+						callback(cvar);
+					}
+				}
+				else
+				{
+					PrintErrorF("Error occurred while executing {0}.", cmdName);
 				}
 			}
 			else
 			{
-				Log.Error("Couldn't find cvar named '{0}'", cmdName);
+				PrintErrorF("Couldn't find {0} in registered cvars.", cmdName);
 			}
 		}
 
-		protected void AddHistory(StringView cmdLine)
+		public void AddHistory(StringView cmdLine)
 		{
-			History.Add(cmdLine);
+			_history.Add(cmdLine);
 		}
 
 		public void Enqueue(StringView cmdLine)
@@ -200,9 +392,8 @@ namespace SteelEngine.Console
 
 		public void Update()
 		{
-			let dt = Time.DeltaTimeUnscaled;
 			if (_cvarWaitTime > 0) {
-				_cvarWaitTime -= dt;
+				_cvarWaitTime -= Time.DeltaTimeUnscaled;
 				return;
 			}
 
@@ -211,12 +402,74 @@ namespace SteelEngine.Console
 				return;
 			}
 
-			while(!(_cvarWaitTime > 0 || _cvarWaitFrames > 0) && _enqueuedCommands.Count > 0)
+			while (!(_cvarWaitTime > 0 || _cvarWaitFrames > 0) && _enqueuedCommands.Count > 0)
 			{
 				let line = _enqueuedCommands.Dequeue();
 				Execute(line);
 				delete line;
 			}
 		}
+
+		public Result<void, FileOpenError> ExecuteFile(StringView path)
+		{
+			StreamReader reader = scope .();
+			if (reader.Open(path) case .Err(let err))
+				return .Err(err);
+
+			String buffer = scope .();
+			while (reader.ReadLine(buffer) case .Ok)
+			{
+				EnqueueNoHistory(buffer);
+			}
+
+			return .Ok;
+		}
+
+		private Result<void, FileOpenError> LoadConfigFile(StringView path)
+		{
+			StreamReader reader = scope .();
+			if (reader.Open(path) case .Err(let err))
+				return .Err(err);
+
+			String buffer = scope .();
+			List<StringView> tokens = scope .();
+
+			String line = new .();
+
+			while (reader.ReadLine(buffer) case .Ok)
+			{
+				int i = 0;
+				int start = 0;
+				
+				while (ConsoleLineParser.Tokenize(buffer, ref i, ref start, tokens, line))
+				{
+					if (tokens.Count < 2)
+						continue;
+
+					let name = tokens[0];
+					if (_configVars.GetAndRemove(name) case .Ok(let val))
+					{
+						val.value.Dispose();
+					}
+
+					StringView[] args = new StringView[tokens.Count-1];
+					tokens.CopyTo(1, args, 0, tokens.Count-1);
+					_configVars.Add(name, ConfigVarValue()
+					{
+						line = line,
+						args = args
+					});
+					line = new .();
+					
+				}
+
+				buffer.Clear();
+			}
+
+			delete line;
+			return .Ok;
+		}
+
+		public IEnumerator<CVar> GetCVars() => _cvars.Values;
 	}
 }

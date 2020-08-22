@@ -1,10 +1,9 @@
 using System;
-using imgui_beef;
 using SteelEngine;
+using imgui_beef;
 
 namespace SteelEditor
 {
-
 	public abstract class EditorWindow
 	{
 		// Pointer to fixed memory i.e. public override StringView Title => "MyEditorWindow";
@@ -13,12 +12,14 @@ namespace SteelEditor
 		public bool IsActive = false;
 		public bool IsClosed = true;
 
+		private bool _isInitialized = false;
+
 		public void Update()
 		{
 			if (!IsActive)
 				return;
 
-			if (ImGui.Begin(Title.Ptr, &IsActive))
+			if (ImGui.Begin(Title.Ptr, &IsActive, .None))
 			{
 				OnRender();
 				ImGui.End();
@@ -26,6 +27,7 @@ namespace SteelEditor
 		}
 
 		public virtual void OnInit() {}
+		public virtual void OnShow() {}
 		public virtual void OnRender() {}
 		public virtual void OnClose() {}
 	}

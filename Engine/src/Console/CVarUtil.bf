@@ -4,57 +4,91 @@ namespace SteelEngine.Console
 {
 	static class CVarUtil
 	{
-		public static bool TryParse(StringView strval, ref bool result)
+		public static bool TryParse(CVar cvar, Span<StringView> args, ref bool result, out bool didChange)
 		{
-			switch(strval)
+			let currentVal = result;
+			switch (args[0])
 			{
 			case "true", "True", "TRUE", "1":
 				result = true;
 			case "false", "False", "FALSE", "0":
 				result = false;
+			default:
+				return false;
 			}
-
-			return false;
-		}
-
-		public static bool TryParse(StringView strval, ref int32 result)
-		{
-			if (int32.Parse(strval) case .Ok(let val))
-			{
-				result = val;
-				return true;
-			}
-
-			return false;
-		}
-
-		public static bool TryParse(StringView strval, ref int64 result)
-		{
-			if (int64.Parse(strval) case .Ok(let val))
-			{
-				result = val;
-				return true;
-			}
-
-			return false;
-		}
-
-		public static bool TryParse(StringView strval, ref float result)
-		{
-			if (float.Parse(strval) case .Ok(let val))
-			{
-				result = val;
-				return true;
-			}
-
-			return false;
-		}
-
-		public static bool TryParse(StringView strval, ref String result)
-		{
-			result.Clear();
-			result.Append(strval);
+			didChange = result != currentVal;
 			return true;
+		}
+
+		public static bool TryParse(CVar cvar, Span<StringView> args, ref int32 result, out bool didChange)
+		{
+			let currentVal = result;
+			if (int32.Parse(args[0]) case .Ok(let val))
+			{
+				result = val;
+				didChange = result != currentVal; 
+				return true;
+			}
+
+			didChange = false;
+			return false;
+		}
+
+		public static bool TryParse(CVar cvar, Span<StringView> args, ref int64 result, out bool didChange)
+		{
+			let currentVal = result;
+			if (int64.Parse(args[0]) case .Ok(let val))
+			{
+				result = val;
+				didChange = result != currentVal;
+				return true;
+			}
+
+			didChange = false;
+			return false;
+		}
+
+		public static bool TryParse(CVar cvar, Span<StringView> args, ref float result, out bool didChange)
+		{
+			let currentVal = result;
+			if (float.Parse(args[0]) case .Ok(let val))
+			{
+				result = val;
+				didChange = result != currentVal;
+				return true;
+			}
+
+			didChange = false;
+			return false;
+		}
+
+		public static bool TryParse(CVar cvar, Span<StringView> args, ref String result, out bool didChange)
+		{
+			didChange = result != args[0];
+			result.Clear();
+			result.Append(args[0]);
+			return true;
+		}
+
+		public static bool TryParse<TEnum>(CVar cvar, Span<StringView> args, ref TEnum result, out bool didChange) where TEnum : Enum
+		{
+			let currentVal = result;
+
+			if (TEnum.Parse<TEnum>(args[0], true) case .Ok(let val))
+			{
+				result = val;
+				didChange = result != currentVal;
+				return true;
+			}
+			if ((int64.Parse(args[0]) case .Ok(var iVal)) && (cvar.HasFlags(.Flags) || EnumUtils<TEnum>.HasValue(iVal)))
+			{
+				result = *(TEnum*)&iVal;
+				didChange = result != currentVal;
+				return true;
+			}
+
+			didChange = false;
+			return false;
 		}
 
 		public static int32 GetValueInt32(bool* val)
@@ -83,7 +117,7 @@ namespace SteelEngine.Console
 			{
 				return res;
 			}
-			return 0;
+			return (int32)(*val).GetHashCode();
 		}
 
 		public static int32 GetValueInt64(bool* val)
@@ -112,7 +146,7 @@ namespace SteelEngine.Console
 			{
 				return res;
 			}
-			return 0;
+			return (*val).GetHashCode();
 		}
 
 		public static int32 GetValueFloat(bool* val)

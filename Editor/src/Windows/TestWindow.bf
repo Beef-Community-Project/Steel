@@ -33,10 +33,10 @@ namespace SteelEditor.Windows
 
 			EditorGUI.Input("Input with hint", _hintTextInput, "Enter text here");
 
-			EditorGUI.InputInt("Int", ref _intInput);
+			EditorGUI.Int("Int", ref _intInput);
 
-			EditorGUI.InputVector2("Vector2", ref _vector2Input);
-			EditorGUI.InputVector3("Vector3", ref _vector3Input);
+			EditorGUI.Vector2("Vector2", ref _vector2Input);
+			EditorGUI.Vector3("Vector3", ref _vector3Input);
 
 			EditorGUI.Combo<ComboItem>("Combo", ref _comboItem);
 		}

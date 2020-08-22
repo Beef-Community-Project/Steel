@@ -12,12 +12,20 @@ namespace SteelEngine.Console
 		public StringView Help => _help;
 		public CVarFlags Flags { get; protected set; }
 
-		public abstract int64 GetValueInt32();
+		public bool HasFlags(CVarFlags flags) => Flags.HasFlag(flags); 
+		public void AddFlags(CVarFlags flags) => Flags |= flags;
+		public void RemoveFlags(CVarFlags flags) => Flags &= ~flags;
+
+		public abstract Type Type { get; }
+
+		public abstract int32 GetValueInt32();
 		public abstract int64 GetValueInt64();
 		public abstract float GetValueFloat() ;
-		public abstract void GetValueString(String buffer) ;
+		public abstract StringView GetValueString(String buffer) ;
 
-		public abstract bool Execute(StringView line, Span<StringView> args);
+		public abstract Result<bool> Execute(StringView strArgs, Span<StringView> args);
+
+		public virtual bool IsCommand => false;
 
 		protected this(StringView name, StringView help, CVarFlags flags)
 		{
@@ -32,93 +40,119 @@ namespace SteelEngine.Console
 	class ConsoleVar<T> : CVar where T : var
 	{
 		protected T* _value;
-		protected OnCVarChange _onChange ~ delete _;
 
-		public override int64 GetValueInt32() { return CVarUtil.GetValueInt32(*_value); }
+		public ref T Value => *_value;
+
+		public override Type Type => typeof(T);
+
+		public override int32 GetValueInt32() { return CVarUtil.GetValueInt32(*_value); }
 		public override int64 GetValueInt64() { return CVarUtil.GetValueInt64(*_value); }
 		public override float GetValueFloat() { return CVarUtil.GetValueFloat(*_value); }
-		public override void GetValueString(String buffer) { (*_value).ToString(buffer); }
-
-		public override bool Execute(StringView line, Span<StringView> args)
+		public override StringView GetValueString(String buffer)
 		{
-			if (args.Length >= 1 && CVarUtil.TryParse(args[0], ref *_value))
-			{
-				_onChange?.Invoke(this);
-				return true;
-			}
-
-			return false;
+			let start = buffer.Length;
+			(*_value).ToString(buffer);
+			return .(buffer, start);
 		}
 
-		public this(StringView name, StringView help, T* val, CVarFlags flags, OnCVarChange onChange) : base(name, help, flags)
+		public override Result<bool> Execute(StringView strArgs, Span<StringView> args)
+		{
+			bool changed;
+			if (args.Length >= 1 && CVarUtil.TryParse(this, args, ref *_value, out changed))
+			{ 
+				return changed;
+			}
+
+			return .Err;
+		}
+
+		public override void ToString(String strBuffer)
+		{
+			strBuffer.AppendF("{0} ", Name);
+			GetValueString(strBuffer);
+		}
+
+		public this(StringView name, StringView help, T* val, CVarFlags flags) : base(name, help, flags)
 		{
 			_value = val;
-			_onChange = _onChange;
 		}
 	}
 
 	
-	class EnumConsoleVar<TEnum> : CVar where TEnum: Enum
+	class EnumConsoleVar<TEnum> : ConsoleVar<TEnum> where TEnum: Enum
 	{
-		protected TEnum* _value;
-		protected OnCVarChange _onChange ~ delete _;
-
-		public override int64 GetValueInt32() { return (*_value); }
+		public override int32 GetValueInt32() { return (*_value); }
 		public override int64 GetValueInt64() { return (*_value); }
 		public override float GetValueFloat() { return (int)(*_value); }
-		public override void GetValueString(String buffer) { (*_value).ToString(buffer); }
 
-		public override bool Execute(StringView line, Span<StringView> args)
+
+		public this(StringView name, StringView help, TEnum* val, CVarFlags flags) : base(name, help, val, flags)
 		{
-			if (args.Length >= 1)
-			{
-				if (TEnum.Parse<TEnum>(args[0], true) case .Ok(let val))
-				{
-					*_value = val;
-					_onChange?.Invoke(this);
-					return true;
-				}
-				if((int64.Parse(args[0]) case .Ok(var iVal)) && EnumUtils<TEnum>.HasValue(iVal))
-				{
-					*_value = *(TEnum*)&iVal;
-					_onChange?.Invoke(this);
-					return true;
-				}
-				
-			}
-
-			return false;
-		}
-
-		public this(StringView name, StringView help, TEnum* val, CVarFlags flags, OnCVarChange onChange) : base(name, help, flags)
-		{
-			_value = val;
-			_onChange = _onChange;
+			
 		}
 	}
 
-	public delegate bool OnCmdExecute(ConsoleCommand cmd, StringView line, Span<StringView> args);
+	public delegate bool OnCmdExecute(CVar cmd, StringView line, Span<StringView> args);
+	public delegate void OnCmdExecuteNoArgs();
+	public delegate void OnCmdExecuteLineArgs(StringView line, Span<StringView> args);
 
-	class ConsoleCommand : CVar
+	class ConsoleCommand<OnExecute> : CVar where OnExecute : Delegate
 	{
-		protected OnCmdExecute _onExecute ~ delete _;
+		protected OnExecute _onExecute ~ delete _;
 
-		public override int64 GetValueInt32() => 0;
+		public override Type Type => typeof(OnExecute);
+
+		public override int32 GetValueInt32() => 0;
 		public override int64 GetValueInt64() => 0;
 		public override float GetValueFloat() => 0;
-		public override void GetValueString(String buffer) {}
+		public override StringView GetValueString(String buffer) => default;
 
-		public override bool Execute(StringView line, Span<StringView> args)
+		public override bool IsCommand => true;
+
+		public override void ToString(String strBuffer)
 		{
-			if (_onExecute == null)
-				return false;
-
-			return _onExecute.Invoke(this, line, args);
+			strBuffer.AppendF("{0}", Name);
 		}
 
-		public this(StringView name, StringView help, OnCmdExecute onExec, CVarFlags flags) : base(name, help, flags)
+		public this(StringView name, StringView help, OnExecute onExec, CVarFlags flags) : base(name, help, flags)
 		{
 			_onExecute = onExec;
 		}
 	}
+
+	extension ConsoleCommand<OnExecute> where OnExecute : OnCmdExecute
+	{
+		public override Result<bool> Execute(StringView strArgs, Span<StringView> args)
+		{
+			if (_onExecute == null)
+				return .Err;
+
+			return _onExecute(this, strArgs, args) ? .Ok(false) : .Err;
+		}
+	}
+
+	extension ConsoleCommand<OnExecute> where OnExecute : OnCmdExecuteNoArgs
+	{
+		public override Result<bool> Execute(StringView strArgs, Span<StringView> args)
+		{
+			if (_onExecute == null)
+				return .Err;
+
+			_onExecute();
+			return false;
+		}
+	}
+
+	extension ConsoleCommand<OnExecute> where OnExecute : OnCmdExecuteLineArgs
+	{
+		public override Result<bool> Execute(StringView strArgs, Span<StringView> args)
+		{
+			if (_onExecute == null)
+				return .Err;
+
+			_onExecute(strArgs, args);
+			return false;
+		}
+	}
+
 }

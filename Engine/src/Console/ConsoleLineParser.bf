@@ -7,6 +7,7 @@ namespace SteelEngine.Console
 	{
 		const char8 SEPARATOR_CHAR = ';';
 		const char8 QUOTE_CHAR = '"';
+		const char8 COMMENT_CHAR = '#';
 
 		static void SkipWhitespace(StringView input, ref int i)
 		{
@@ -24,7 +25,7 @@ namespace SteelEngine.Console
 			let startPos = i;
 			while (i < input.Length)
 			{
-				if (input[i].IsWhiteSpace || input[i] == SEPARATOR_CHAR)
+				if (input[i].IsWhiteSpace || input[i] == SEPARATOR_CHAR || input[i] == COMMENT_CHAR)
 					break;
 
 				i++;
@@ -39,6 +40,7 @@ namespace SteelEngine.Console
 		static StringView? ParseQuotes(StringView input, ref int i)
 		{
 			// @TODO(fusion) - how to handle when quote is not in pair currently this is ignored
+			// @TODO(fusion) - escaped quotes keep the backslash char, they should be removed
 
 			bool isPair = false;
 			var startPos = i;
@@ -80,7 +82,10 @@ namespace SteelEngine.Console
 				{
 					if (tokens.IsEmpty) 
 						start = i;
-					
+
+					if (input[i] == COMMENT_CHAR)
+						break;
+
 					if (input[i] == SEPARATOR_CHAR && !tokens.IsEmpty)
 						break;
 
@@ -96,10 +101,25 @@ namespace SteelEngine.Console
 						i++;
 				}
 			}
-
-			
-
 			return !tokens.IsEmpty;
+		}
+
+		// Sets output to contain all tokens and
+		// transforms tokens to be relative to output string
+		public static bool Tokenize(StringView input, ref int i, ref int start, List<StringView> tokens, String output)
+		{
+			if (Tokenize(input, ref i, ref start, tokens))
+			{
+				output.Set(StringView(input, start, i - start));
+				for (var t in ref tokens)
+				{
+					let offset = (t.Ptr - input.Ptr) - start;
+					t = .(output, offset, t.Length);
+				}
+				return true;
+			}
+
+			return false;
 		}
 	}
 }

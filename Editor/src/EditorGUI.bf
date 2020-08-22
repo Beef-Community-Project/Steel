@@ -9,11 +9,12 @@ namespace SteelEditor
 {
 	public static class EditorGUI
 	{
-		public delegate void HistoryCallback(VerticalDirection direction);
-
-		private static HistoryCallback _historyCallback = null;
+		private static InputCallback _inputCallback = .(.None);
 		private static Dictionary<String, InputTextBuffer> _inputTextBuffers = new .() ~ DeleteDictionaryAndKeysAndItems!(_);
-		private static uint _popItemWidthCount = 0;
+		private static bool _popItemWidth = false;
+		private static bool _popItemColor = false;
+		private static bool _popItemID = false;
+		private static uint _treeCount = 0;
 
 		// Text
 
@@ -23,21 +24,34 @@ namespace SteelEditor
 			CheckItem();
 		}
 
-		public static void Label(StringView label)
+		public static bool Label(StringView label)
 		{
 			if (label.StartsWith("##"))
-				return;
+				return false;
 
+			ImGui.Columns(2);
 			ImGui.AlignTextToFramePadding();
 			Text(label);
 			CheckItem();
-			ImGui.SameLine();
+			ImGui.NextColumn();
+			ImGui.SameLine(30);
+			FillWidth();
+
+			return true;
 		}
 
 		public static void LabelText(StringView label, StringView fmt, params Object[] args)
 		{
-			ImGui.LabelText(scope String()..AppendF(fmt, params args), label.Ptr);
-			CheckItem();
+			Label(label);
+			Text(scope String()..AppendF(fmt, params args));
+			CheckItem(false);
+		}
+
+		public static void Tooltip(StringView fmt, params Object[] args)
+		{
+			ImGui.BeginTooltip();
+			Text(fmt, params args);
+			ImGui.EndTooltip();
 		}
 
 		// Input
@@ -47,6 +61,30 @@ namespace SteelEditor
 			var isClicked = ImGui.Button(name.Ptr);
 			CheckItem();
 			return isClicked;
+		}
+
+		public static void Button(StringView name, ref bool value)
+		{
+			value = Button(name);
+		}
+
+		public static void ToggleButton(StringView name, ref bool value)
+		{
+			if (!value)
+			{
+				var color = ImGui.GetStyleColorVec4(.Button);
+				color.w = 0.2f;
+				ImGui.PushStyleColor(.Button, color);
+			}
+
+			var isClicked = ImGui.Button(name.Ptr);
+
+			if (!value)
+				ImGui.PopStyleColor();
+
+			CheckItem();
+			if (isClicked)
+				value = !value;
 		}
 
 		public static bool Checkbox(StringView label, bool value)
@@ -64,11 +102,15 @@ namespace SteelEditor
 			CheckItem();
 		}
 
-		public static bool Input(StringView label, String buffer, StringView hint = "", uint maxSize = 256, HistoryCallback historyCallback = null)
+		public static InputCallback Input(StringView label, String buffer, StringView hint = "", uint maxSize = 256)
 		{
-			Label(label);
+			bool hasLabel = Label(label);
+			if (!hasLabel)
+				ImGui.Columns(1);
 
-			_historyCallback = historyCallback;
+			if (_inputCallback.[Friend]_type != .None)
+				_inputCallback = .(.None);
+
 			var labelStr = scope String(label);
 
 			if (!_inputTextBuffers.ContainsKey(labelStr))
@@ -77,112 +119,96 @@ namespace SteelEditor
 			var inputTextBuffer = _inputTextBuffers[labelStr];
 			inputTextBuffer.ReAlloc(maxSize);
 
-			bool enterPressed = false;
+			bool isEnter = false;
 
-			ImGui.InputTextFlags flags = .EnterReturnsTrue | .CallbackHistory;
+			ImGui.InputTextFlags flags = .EnterReturnsTrue | .CallbackHistory | .CallbackCompletion;
 
 			if (hint != "")
-				enterPressed = ImGui.InputTextWithHint(scope UniqueLabel(label, "Input"), hint.Ptr, inputTextBuffer.Ptr, maxSize, flags, => InputTextCallback);
+				isEnter = ImGui.InputTextWithHint(scope UniqueLabel(label, "Input"), hint.Ptr, inputTextBuffer.Ptr, maxSize, flags, => InputTextCallback);
 			else
-				enterPressed = ImGui.InputText(scope UniqueLabel(label, "Input"), inputTextBuffer.Ptr, maxSize, flags, => InputTextCallback);
+				isEnter = ImGui.InputText(scope UniqueLabel(label, "Input"), inputTextBuffer.Ptr, maxSize, flags, => InputTextCallback);
 
-			CheckItem();
-			buffer.Set(inputTextBuffer.View());
-			_historyCallback = null;
+			
+			if (!hasLabel)
+			{
+				CheckItem(false);
+			}
+			else
+			{
+				CheckItem();
+			}
 
-			return enterPressed;
+			var view = inputTextBuffer.View();
+			buffer.Set(view);
+
+			if (view != buffer)
+				_inputCallback = .(.OnChange);
+
+			if (isEnter)
+				_inputCallback = .(.OnEnter);
+
+			return _inputCallback;
 		}
 
 		private static int InputTextCallback(ImGui.InputTextCallbackData* data)
 		{
-			if (data.EventFlag == .CallbackHistory)
-			{
-				if (_historyCallback == null)
-					return 0;
-
-				VerticalDirection dir = .Up;
-				if (data.EventKey == ImGui.Key.DownArrow)
-					dir = .Down;
-				_historyCallback(dir);
-			}
-
+			_inputCallback = .(data);
 			return 0;
 		}
 
-		public static int InputInt(StringView label, int value)
+		public static int Int(StringView label, int value)
 		{
 			var input = value;
-			InputInt(label, ref input);
+			Int(label, ref input);
 			return input;
 		}
 
-		public static void InputInt(StringView label, ref int value)
+		public static void Int(StringView label, ref int value)
 		{
 			Label(label);
-			ImGui.InputInt(scope UniqueLabel(label, "InputInt"), &value);
+			ImGui.DragInt(scope UniqueLabel(label, "InputInt"), &value);
 			CheckItem();
 		}
 
-		public static float InputFloat(StringView label, float value)
+		public static float Float(StringView label, float value)
 		{
 			var input = value;
-			InputFloat(label, ref input);
+			Float(label, ref input);
 			return input;
 		}
 
-		public static void InputFloat(StringView label, ref float value)
+		public static void Float(StringView label, ref float value)
 		{
 			Label(label);
-			ImGui.InputFloat(scope UniqueLabel(label, "InputFloat"), &value);
+			ImGui.DragFloat(scope UniqueLabel(label, "InputFloat"), &value);
 			CheckItem();
 		}
 
-		public static double InputDouble(StringView label, double value)
+		public static Vector2 Vector2(StringView label, Vector2 value)
 		{
 			var input = value;
-			InputDouble(label, ref input);
+			Vector2(label, ref input);
 			return input;
 		}
 
-		public static void InputDouble(StringView label, ref double value)
+		public static void Vector2(StringView label, ref Vector2 value)
 		{
 			Label(label);
-			ImGui.InputDouble(scope UniqueLabel(label, "InputDouble"), &value);
+			ImGui.DragFloat2(scope UniqueLabel(label, "Vector2"), value.data);
 			CheckItem();
 		}
 
-		public static Vector2 InputVector2(StringView label, Vector2 value)
+		public static Vector3 Vector3(StringView label, Vector3 value)
 		{
 			var input = value;
-			InputVector2(label, ref input);
+			Vector3(label, ref input);
 			return input;
 		}
 
-		public static void InputVector2(StringView label, ref Vector2 value)
+		public static void Vector3(StringView label, ref Vector3 value)
 		{
 			Label(label);
-			ImGui.InputFloat2(scope UniqueLabel(label, "InputVector2"), value.data);
-			CheckItem();
-		}
-
-		public static Vector3 InputVector3(StringView label, Vector3 value)
-		{
-			var input = value;
-			InputVector3(label, ref input);
-			return input;
-		}
-
-		public static void InputVector3(StringView label, ref Vector3 value)
-		{
-			Label(label);
-			ImGui.InputFloat3(scope UniqueLabel(label, "InputVector3"), value.data);
-			CheckItem();
-		}
-
-		public static void SliderFloat(StringView label, ref float value, float minValue, float maxValue)
-		{
-			Label(label);
-			ImGui.SliderFloat(scope UniqueLabel(label, "SliderFloat"), &value, minValue, maxValue);
+			ImGui.DragFloat3(scope UniqueLabel(label, "Vector3"), value.data);
 			CheckItem();
 		}
 
@@ -216,35 +242,107 @@ namespace SteelEditor
 			ImGui.Separator();
 		}
 
-		public static void SameLine()
+		public static void SameLine(float offset = 0)
 		{
-			ImGui.SameLine();
+			if (offset != 0)
+				ImGui.SameLine(offset);
+			else
+				ImGui.SameLine();
 		}
 
-		public static void ItemWidth(float percent)
+		public static void AlignFromRight(float offset)
 		{
-			//let windowWidth = ImGui.GetWindowContentRegionWidth();
-			//ImGui.PushItemWidth(windowWidth / 100 * percent);
-			ImGui.PushItemWidth(-50);
-			_popItemWidthCount++;
+			ImGui.SameLine(ImGui.GetWindowWidth() - offset);
+		}
+
+		public static void ItemWidth(float width)
+		{
+			ImGui.PushItemWidth(width);
+			_popItemWidth = true;
+		}
+
+		public static void FillWidth() => ItemWidth(-1);
+
+		public static bool BeginTree(StringView label)
+		{
+			ImGui.Columns(1);
+			var isOpen = ImGui.CollapsingHeader(label.Ptr);
+			if (isOpen)
+			{
+				ImGui.Indent();
+				_treeCount++;
+			}
+			else
+			{
+				CheckItem(false);
+			}
+			return isOpen;
+		}
+
+		public static void EndTree()
+		{
+			if (_treeCount > 0)
+			{
+				CheckItem(false);
+				ImGui.Unindent();
+				ImGui.Columns(2);
+				_treeCount--;
+			}
+		}
+
+		public static void BeginScrollingRegion(StringView label, float height = 0)
+		{
+			ImGui.BeginChild(label.Ptr, .(0, height), false, .HorizontalScrollbar);
+		}
+
+		public static void EndScrollingRegion()
+		{
+			ImGui.EndChild();
+		}
+
+		public static float GetHeightOfItems(uint numberOfItems)
+		{
+			return ImGui.GetStyle().ItemSpacing.y + ImGui.GetFrameHeightWithSpacing() * numberOfItems;
+		}
+
+		// Style
+
+		public static void TextColor(Color color)
+		{
+			ImGui.PushStyleColor(.Text, color);
+			_popItemColor = true;
 		}
 
 		// Other
 
-		public static void Tooltip(StringView fmt, params Object[] args)
+		public static void ItemID(StringView id)
 		{
-			ImGui.BeginTooltip();
-			Text(fmt, params args);
-			ImGui.EndTooltip();
+			ImGui.PushID(id.Ptr);
+			_popItemID = true;
 		}
 
-		private static void CheckItem()
+		private static void CheckItem(bool nextColumn = true)
 		{
-			if (_popItemWidthCount > 0)
+			if (_popItemWidth)
 			{
 				ImGui.PopItemWidth();
-				_popItemWidthCount--;
+				_popItemWidth = false;
+			} 
+			
+			if (_popItemColor)
+			{
+				ImGui.PopStyleColor();
+				_popItemColor = false;
 			}
+
+			if (_popItemID)
+			{
+				ImGui.PopID();
+				_popItemID = false;
+			}
+
+			if (nextColumn)
+				ImGui.NextColumn();
 		}
 
 		private class UniqueLabel
@@ -289,6 +387,11 @@ namespace SteelEditor
 					delete _buffer;
 			}
 
+			public void Set(StringView str)
+			{
+				str.CopyTo(_buffer);
+			}
+
 			public void ReAlloc(uint size)
 			{
 				if (size == _size)
@@ -317,6 +420,60 @@ namespace SteelEditor
 			public StringView View() => StringView(Ptr);
 
 			public char8* Ptr => &_buffer[0];
+		}
+
+		public enum InputCallbackType
+		{
+			None,
+			OnHistory,
+			OnEnter,
+			OnCompletion,
+			OnChange
+		}
+
+		public struct InputCallback
+		{
+			private InputCallbackType _type;
+			private VerticalDirection _historyDirection = .Up;
+
+			public this(InputCallbackType type)
+			{
+				_type = type;
+			}
+
+			public this(ImGui.InputTextCallbackData* data)
+			{
+				if (data.EventFlag == .CallbackHistory)
+				{
+					_type = .OnHistory;
+					if (data.EventKey == ImGui.Key.DownArrow)
+						_historyDirection = .Down;
+				}
+				else if (data.EventFlag == .EnterReturnsTrue)
+				{
+					_type = .OnEnter;
+				}
+				else if (data.EventFlag == .CallbackCompletion)
+				{
+					_type = .OnCompletion;
+				}
+				else
+				{
+					_type = .OnChange;
+				}
+			}
+
+			public bool OnHistory(out VerticalDirection direction)
+			{
+				direction = _historyDirection;
+				if (_type == .OnHistory)
+					return true;
+				return false;
+			}
+
+			public bool OnEnter => _type == .OnEnter;
+			public bool OnCompletion => _type == .OnCompletion;
+			public bool OnChange => _type == .OnChange;
 		}
 	}
 }
