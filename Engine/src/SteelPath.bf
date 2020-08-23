@@ -34,6 +34,11 @@ namespace SteelEngine
 		{
 			Path.InternalCombine(target, UserDirectory, relativePath);
 
+			var dir = scope String();
+			Path.GetDirectoryPath(target, dir);
+			if (create && !Directory.Exists(dir))
+				Directory.CreateDirectory(dir);
+
 			if (create && !File.Exists(target))
 			{
 				if (File.WriteAllText(target, "") case .Err(let err))

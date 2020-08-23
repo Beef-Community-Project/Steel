@@ -231,6 +231,8 @@ namespace SteelEngine
 			for (var layer in _layerStack)
 				layer.OnUpdate();
 
+			_gameConsole.Update();
+
 			OnUpdate();
 		}
 

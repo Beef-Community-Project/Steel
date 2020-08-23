@@ -51,8 +51,6 @@ namespace SteelEngine
 		
 		public LogLevel logLevel = .Info;
 
-		LogCallback _logCallback = new => OnLogCallback ~ delete _;
-
 		bool _opened = false;
 		public bool IsOpen = _opened;
 
@@ -80,8 +78,7 @@ namespace SteelEngine
 		{
 			Log.AddCallback(new (str, level) =>
 			{
-				if (level >= logLevel)
-					PrintLine(logLevel, str);
+				PrintLine(level, str);
 			});
 
 			for (var file in configFiles)
@@ -138,14 +135,6 @@ namespace SteelEngine
 			{
 				Clear();
 			});
-		}
-
-		void OnLogCallback(LogLevel logLevel, StringView message)
-		{
-			if (logLevel < logLevel)
-				return;
-
-			PrintLine(logLevel, message);
 		}
 
 		public void Open()

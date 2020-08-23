@@ -41,11 +41,13 @@ namespace SteelEditor
 			if (label.StartsWith("##"))
 				return false;
 
+			
 			ImGui.Columns(2);
 			ImGui.AlignTextToFramePadding();
+
 			Text(label);
-			CheckItem();
-			ImGui.NextColumn();
+			CheckItem(false);
+
 			ImGui.SameLine(30);
 			FillWidth();
 
@@ -251,7 +253,9 @@ namespace SteelEditor
 
 		public static void Line()
 		{
+			ImGui.PopStyleColor();
 			ImGui.Separator();
+			ImGui.PushStyleColor(.Separator, ImGui.Vec4(0, 0, 0, 0));
 		}
 
 		public static void SameLine(float offset = 0)

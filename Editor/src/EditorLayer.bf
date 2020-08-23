@@ -35,6 +35,7 @@ namespace SteelEditor
 			style.WindowMenuButtonPosition = .None; // This disables the collapse button on windows
 			style.WindowRounding = 0f;
 			ImGui.StyleColorsClassic(&style);
+			ImGui.PushStyleColor(.Separator, ImGui.Vec4(0, 0, 0, 0));
 
 			_originalStyle = style;
 
@@ -81,7 +82,7 @@ namespace SteelEditor
 					ImGui.EndMenu();
 				}
 
-				if (ImGui.BeginMenu("Window"))
+				if (ImGui.BeginMenu("View"))
 				{
 					for (var window in _editorWindows)
 					{
@@ -89,17 +90,11 @@ namespace SteelEditor
 							ShowWindow(window);
 					}
 
-					if (ImGui.MenuItem("Demo"))
-						_showDemoWindow = true;
-
 					ImGui.EndMenu();
 				}
 
 				ImGui.EndMainMenuBar();
 			}
-
-			if (_showDemoWindow)
-				ImGui.ShowDemoWindow(&_showDemoWindow);
 
 			// Update ImGui windows
 			for (var window in _editorWindows)

@@ -160,7 +160,7 @@ namespace SteelEditor
 			delete config;
 
 			var configPath = scope String();
-			SteelPath.GetEditorUserFile("Config.txt", configPath);
+			SteelPath.GetEditorUserFile("Config.txt", configPath, true);
 
 			if (File.WriteAllText(configPath, serialized) case .Err)
 				Log.Error("Failed to save style");
@@ -191,7 +191,10 @@ namespace SteelEditor
 			SteelPath.GetEditorUserFile("Config.txt", configPath);
 			var serialized = new String();
 			if (File.ReadAllText(configPath, serialized) case .Err)
+			{
+				delete serialized;
 				return;
+			}
 
 			var config = new Dictionary<String, Object>();
 
