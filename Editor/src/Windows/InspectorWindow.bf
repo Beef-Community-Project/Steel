@@ -15,9 +15,20 @@ namespace SteelEditor.Windows
 		private Entity _entity = new Entity();
 		private String _entityName = new .() ~ delete _;
 
-		public override void OnShow()
+		public void UpdateEntityName()
+		{
+			_entityName.Clear();
+			Editor.GetEntityName(_entity.Id, _entityName);
+		}
+
+		public override void OnInit()
 		{
 			_entity.AddComponent(new TransformComponent());
+		}
+
+		public override void OnShow()
+		{
+			UpdateEntityName();
 		}
 
 		public override void OnRender()
@@ -27,9 +38,9 @@ namespace SteelEditor.Windows
 
 			_entity.IsEnabled = EditorGUI.Checkbox("##EntityEnabled", _entity.IsEnabled);
 
-			Editor.GetEntityName(_entity.Id, _entityName);
 			EditorGUI.SameLine();
-			EditorGUI.Input("##EntityName", _entityName);
+			if (EditorGUI.Input("##EntityName", _entityName).OnChange)
+				Editor.SetEntityName(_entity.Id, _entityName);
 
 			EditorGUI.Line();
 
@@ -50,11 +61,11 @@ namespace SteelEditor.Windows
 				}
 
 				EditorGUI.ItemID(scope String()..AppendF("{}", component));
-				if (EditorGUI.BeginTree(componentName))
+				if (EditorGUI.BeginCollapsableHeader(componentName))
 				{
 					RenderObject(component);
 					RenderObject<BaseComponent>(component);
-					EditorGUI.EndTree();
+					EditorGUI.EndCollapsableHeader();
 				}
 			}
 		}
@@ -116,11 +127,11 @@ namespace SteelEditor.Windows
 					var variant = field.GetValue(object).Get();
 					if (variant.IsObject)
 					{
-						if (!EditorGUI.BeginTree(field.GetName()))
+						if (!EditorGUI.BeginCollapsableHeader(field.GetName()))
 							continue;
 
 						RenderObject(variant.Get<Object>(), field.FieldType, field.GetName());
-						EditorGUI.EndTree();
+						EditorGUI.EndCollapsableHeader();
 					}
 					variant.Dispose();
 				}

@@ -48,7 +48,11 @@ namespace SteelEditor
 
 		public static void SetEntityName(EntityId id, StringView name)
 		{
-			GetInstance<Editor>()._entityNames[id] = new .(name);
+			var editor = GetInstance<Editor>();
+			if (!editor._entityNames.ContainsKey(id))
+				editor._entityNames[id] = new .(name);
+			else
+				editor._entityNames[id].Set(name);
 		}
 
 		public static void ShowWindow<T>() where T : EditorWindow

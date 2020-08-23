@@ -14,7 +14,7 @@ namespace SteelEditor
 		private static bool _popItemWidth = false;
 		private static bool _popItemColor = false;
 		private static bool _popItemID = false;
-		private static uint _treeCount = 0;
+		private static uint _collapsableHeaderCount = 0;
 
 		// Window
 
@@ -41,14 +41,13 @@ namespace SteelEditor
 			if (label.StartsWith("##"))
 				return false;
 
-			
 			ImGui.Columns(2);
 			ImGui.AlignTextToFramePadding();
 
 			Text(label);
 			CheckItem(false);
 
-			ImGui.SameLine(30);
+			ImGui.SameLine(22);
 			FillWidth();
 
 			return true;
@@ -116,7 +115,7 @@ namespace SteelEditor
 			CheckItem();
 		}
 
-		public static InputCallback Input(StringView label, String buffer, StringView hint = "", uint maxSize = 256)
+		public static InputCallback Input(StringView label, String buffer, StringView hint = "", int maxSize = 256)
 		{
 			bool hasLabel = Label(label);
 			if (!hasLabel)
@@ -131,35 +130,34 @@ namespace SteelEditor
 				_inputTextBuffers[new String(label)] = new .();
 
 			var inputTextBuffer = _inputTextBuffers[labelStr];
-			inputTextBuffer.ReAlloc(maxSize);
+			if (inputTextBuffer.Size != (uint) maxSize)
+				inputTextBuffer.ReAlloc((uint) maxSize);
+
+			inputTextBuffer.Set(buffer);
 
 			bool isEnter = false;
 
 			ImGui.InputTextFlags flags = .EnterReturnsTrue | .CallbackHistory | .CallbackCompletion;
 
 			if (hint != "")
-				isEnter = ImGui.InputTextWithHint(scope UniqueLabel(label, "Input"), hint.Ptr, inputTextBuffer.Ptr, maxSize, flags, => InputTextCallback);
+				isEnter = ImGui.InputTextWithHint(scope UniqueLabel(label, "Input"), hint.Ptr, inputTextBuffer.Ptr, (uint) maxSize, flags, => InputTextCallback);
 			else
-				isEnter = ImGui.InputText(scope UniqueLabel(label, "Input"), inputTextBuffer.Ptr, maxSize, flags, => InputTextCallback);
-
+				isEnter = ImGui.InputText(scope UniqueLabel(label, "Input"), inputTextBuffer.Ptr, (uint) maxSize, flags, => InputTextCallback);
 			
 			if (!hasLabel)
-			{
 				CheckItem(false);
-			}
 			else
-			{
 				CheckItem();
-			}
 
 			var view = inputTextBuffer.View();
-			buffer.Set(view);
 
 			if (view != buffer)
 				_inputCallback = .(.OnChange);
 
 			if (isEnter)
 				_inputCallback = .(.OnEnter);
+
+			buffer.Set(view);
 
 			return _inputCallback;
 		}
@@ -279,14 +277,14 @@ namespace SteelEditor
 
 		public static void FillWidth() => ItemWidth(-1);
 
-		public static bool BeginTree(StringView label)
+		public static bool BeginCollapsableHeader(StringView label)
 		{
 			ImGui.Columns(1);
 			var isOpen = ImGui.CollapsingHeader(label.Ptr);
 			if (isOpen)
 			{
 				ImGui.Indent();
-				_treeCount++;
+				_collapsableHeaderCount++;
 			}
 			else
 			{
@@ -295,15 +293,25 @@ namespace SteelEditor
 			return isOpen;
 		}
 
-		public static void EndTree()
+		public static void EndCollapsableHeader()
 		{
-			if (_treeCount > 0)
+			if (_collapsableHeaderCount > 0)
 			{
 				CheckItem(false);
 				ImGui.Unindent();
 				ImGui.Columns(2);
-				_treeCount--;
+				_collapsableHeaderCount--;
 			}
+		}
+
+		public static bool BeginTree(StringView label)
+		{
+			return ImGui.TreeNode(label.Ptr);
+		}
+
+		public static void EndTree()
+		{
+			ImGui.TreePop();
 		}
 
 		public static void BeginScrollingRegion(StringView label, float height = 0)
@@ -390,7 +398,8 @@ namespace SteelEditor
 		private class InputTextBuffer
 		{
 			private char8[] _buffer = null;
-			private uint _size = 0;
+
+			public uint Size = 0;
 
 			public this(uint size = 1)
 			{
@@ -405,15 +414,20 @@ namespace SteelEditor
 
 			public void Set(StringView str)
 			{
-				str.CopyTo(_buffer);
+				if (str.Length > (int) Size)
+					return;
+				for (int i = 0; i < str.Length; i++)
+					_buffer[i] = str[i];
+				for (int i = str.Length; i < (int) Size; i++)
+					_buffer[i] = '\0';
 			}
 
 			public void ReAlloc(uint size)
 			{
-				if (size == _size)
+				if (size == Size)
 					return;
 
-				_size = size;
+				Size = size;
 
 				if (_buffer != null)
 				{
