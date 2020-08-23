@@ -1,9 +1,9 @@
-using SteelEngine.Math;
+using SteelEngine;
 using System;
 
 namespace SteelEngine.ECS.Components
 {
-	[Reflect]
+	[Reflect, AlwaysInclude(AssumeInstantiated=true, IncludeAllMethods=true)]
 	public class TransformComponent : BaseComponent
 	{
 		public Vector3 Position { get; set; }

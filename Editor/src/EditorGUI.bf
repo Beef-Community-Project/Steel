@@ -76,16 +76,16 @@ namespace SteelEditor
 
 		// Input
 
-		public static bool Button(StringView name)
+		public static bool Button(StringView name, Vector2 size = default)
 		{
-			var isClicked = ImGui.Button(name.Ptr);
+			var isClicked = ImGui.Button(name.Ptr, size);
 			CheckItem();
 			return isClicked;
 		}
 
-		public static void Button(StringView name, ref bool value)
+		public static void Button(StringView name, ref bool value, Vector2 size = default)
 		{
-			value = Button(name);
+			value = Button(name, size);
 		}
 
 		public static void ToggleButton(StringView name, ref bool value)
@@ -276,6 +276,11 @@ namespace SteelEditor
 			ImGui.SameLine(ImGui.GetWindowWidth() - offset);
 		}
 
+		public static void AlignMiddle(float itemWidth)
+		{
+			ImGui.SetCursorPosX((ImGui.GetWindowWidth() - itemWidth) / 2);
+		}
+
 		public static void ItemWidth(float width)
 		{
 			ImGui.PushItemWidth(width);
@@ -287,7 +292,7 @@ namespace SteelEditor
 		public static bool BeginCollapsableHeader(StringView label)
 		{
 			ImGui.Columns(1);
-			var isOpen = ImGui.CollapsingHeader(label.Ptr);
+			var isOpen = ImGui.CollapsingHeader(label.Ptr, .AllowItemOverlap);
 			if (isOpen)
 			{
 				ImGui.Indent();
@@ -334,6 +339,16 @@ namespace SteelEditor
 		public static float GetHeightOfItems(uint numberOfItems)
 		{
 			return ImGui.GetStyle().ItemSpacing.y + ImGui.GetFrameHeightWithSpacing() * numberOfItems;
+		}
+
+		public static void RemoveColumns()
+		{
+			ImGui.Columns(1);
+		}
+
+		public static void NewLine()
+		{
+			ImGui.NewLine();
 		}
 
 		// Style

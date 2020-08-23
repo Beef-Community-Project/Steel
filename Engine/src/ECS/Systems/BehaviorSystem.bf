@@ -25,7 +25,7 @@ namespace SteelEngine.ECS.Systems
 				{
 					continue;
 				}
-				(component as BehaviorComponent).[Friend]Update(delta);
+				((BehaviorComponent) component).[Friend]Update(delta);
 			}
 		}
 	}

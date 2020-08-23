@@ -14,6 +14,7 @@ namespace SteelEditor.Windows
 
 		private Entity _entity = null;
 		private String _entityName = new .() ~ delete _;
+		private bool _showAddComponentPopup = false;
 
 		public static void SetCurrentEntity(Entity entity)
 		{
@@ -53,12 +54,71 @@ namespace SteelEditor.Windows
 				}
 
 				EditorGUI.ItemID(scope String()..AppendF("{}", component));
-				if (EditorGUI.BeginCollapsableHeader(componentName))
+				var isOpen = EditorGUI.BeginCollapsableHeader(componentName);
+
+				EditorGUI.AlignFromRight(20);
+				if (EditorGUI.Selectable("X"))
+				{
+					_entity.RemoveComponent(component);
+					continue;
+				}
+
+				if (isOpen)
 				{
 					RenderObject(component);
-					RenderObject<BaseComponent>(component);
 					EditorGUI.EndCollapsableHeader();
 				}
+			}
+
+			EditorGUI.RemoveColumns();
+			EditorGUI.NewLine();
+			EditorGUI.AlignMiddle(130);
+			if (EditorGUI.Button("Add Component", .(130, 20)))
+				_showAddComponentPopup = true;
+
+			if (_showAddComponentPopup)
+				ShowAddComponentPopup();
+		}
+
+		private void ShowAddComponentPopup()
+		{
+			Type componentType = null;
+
+			if (EditorGUI.BeginWindow("Add Component", ref _showAddComponentPopup))
+			{
+				for (var type in Type.Types)
+				{
+					if (type.IsSubtypeOf(typeof(BaseComponent)))
+					{
+						var typeName = scope String();
+						type.GetShortName(typeName);
+						if (typeName == "BaseComponent" || typeName == "BehaviourComponent")
+							continue;
+
+						if (EditorGUI.Selectable(typeName))
+						{
+							componentType = type;
+							_showAddComponentPopup = false;
+							break;
+						}
+					}
+				}
+
+				EditorGUI.EndWindow();
+			}
+
+			if (componentType != null)
+			{
+				var createResult = componentType.CreateObject();
+				if (createResult case .Err)
+				{
+					var typeName = scope String();
+					componentType.GetName(typeName);
+					Log.Error("Failed create component ({})", typeName);
+					return;
+				}
+
+				_entity.AddComponent((BaseComponent) createResult.Get());
 			}
 		}
 
@@ -74,16 +134,19 @@ namespace SteelEditor.Windows
 			var fields = scope List<FieldInfo>(type.GetFields(.Instance | .Public));
 			if (fields.IsEmpty)
 			{
-				RenderValue(name, object);
+				if (!type.IsSubtypeOf(typeof(BaseComponent)))
+					RenderValue(name, object);
 				return;
 			}
 			
-			//ImGui.Columns(2);
 			RenderFields(fields, object);
 		}
 
 		private void RenderValue(StringView name, Object object)
 		{
+			if (object.GetType().IsSubtypeOf(typeof(Entity)))
+				return;
+
 			EditorGUI.LabelText(name, "{}", object);
 		}
 
@@ -98,7 +161,7 @@ namespace SteelEditor.Windows
 					//RenderInt(field, component);
 					continue;
 				}
-				
+
 				switch (field.FieldType)
 				{
 				case typeof(Vector3):
@@ -120,7 +183,7 @@ namespace SteelEditor.Windows
 					if (variant.IsObject)
 					{
 						if (!EditorGUI.BeginCollapsableHeader(field.GetName()))
-							continue;
+							break;
 
 						RenderObject(variant.Get<Object>(), field.FieldType, field.GetName());
 						EditorGUI.EndCollapsableHeader();
