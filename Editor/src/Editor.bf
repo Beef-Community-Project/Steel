@@ -24,6 +24,7 @@ namespace SteelEditor
 			AddWindow<StyleWindow>();
 			AddWindow<ConsoleWindow>();
 			AddWindow<InspectorWindow>();
+			AddWindow<HierarchyWindow>();
 
 			LoadConfig();
 		}
@@ -53,6 +54,11 @@ namespace SteelEditor
 				editor._entityNames[id] = new .(name);
 			else
 				editor._entityNames[id].Set(name);
+		}
+
+		public static T GetWindow<T>() where T : EditorWindow
+		{
+			return GetInstance<Editor>()._editorLayer.GetWindow<T>();
 		}
 
 		public static void ShowWindow<T>() where T : EditorWindow

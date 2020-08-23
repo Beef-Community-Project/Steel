@@ -93,6 +93,14 @@ namespace SteelEditor
 					ImGui.EndMenu();
 				}
 
+				if (ImGui.BeginMenu("Create"))
+				{
+					if (ImGui.MenuItem("Entity"))
+						Application.Instance.CreateEntity();
+
+					ImGui.EndMenu();
+				}
+
 				ImGui.EndMainMenuBar();
 			}
 
@@ -186,7 +194,7 @@ namespace SteelEditor
 		{
 			for (var window in _editorWindows)
 				if (typeof(T) == window.GetType())
-					return window;
+					return (T) window;
 
 			return null;
 		}

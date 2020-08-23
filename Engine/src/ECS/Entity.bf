@@ -23,8 +23,6 @@ namespace SteelEngine.ECS
 			EntityStore = new Dictionary<EntityId, Entity>();
 		}
 
-		public virtual StringView Name => "Entity";
-
 		public static Dictionary<EntityId, Entity> EntityStore { get; private set; };
 
 		/// <summary>

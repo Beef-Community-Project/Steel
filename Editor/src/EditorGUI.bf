@@ -20,7 +20,7 @@ namespace SteelEditor
 
 		public static bool BeginWindow(StringView name, ref bool isActive)
 		{
-			return ImGui.Begin(name.Ptr, &isActive);
+			return ImGui.Begin(name.Ptr, &isActive, .NoScrollbar);
 		}
 
 		public static void EndWindow()
@@ -34,6 +34,13 @@ namespace SteelEditor
 		{
 			ImGui.Text(scope String()..AppendF(fmt, params args));
 			CheckItem();
+		}
+
+		public static bool Selectable(StringView text, bool selected = false)
+		{
+			var isSelected = ImGui.Selectable(text.Ptr, selected);
+			CheckItem();
+			return isSelected;
 		}
 
 		public static bool Label(StringView label)

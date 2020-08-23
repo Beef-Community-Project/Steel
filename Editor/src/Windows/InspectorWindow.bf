@@ -12,23 +12,12 @@ namespace SteelEditor.Windows
 	{
 		public override StringView Title => "Inspector";
 
-		private Entity _entity = new Entity();
+		private Entity _entity = null;
 		private String _entityName = new .() ~ delete _;
 
-		public void UpdateEntityName()
+		public static void SetCurrentEntity(Entity entity)
 		{
-			_entityName.Clear();
-			Editor.GetEntityName(_entity.Id, _entityName);
-		}
-
-		public override void OnInit()
-		{
-			_entity.AddComponent(new TransformComponent());
-		}
-
-		public override void OnShow()
-		{
-			UpdateEntityName();
+			Editor.GetWindow<InspectorWindow>()._entity = entity;
 		}
 
 		public override void OnRender()
@@ -37,6 +26,9 @@ namespace SteelEditor.Windows
 				return;
 
 			_entity.IsEnabled = EditorGUI.Checkbox("##EntityEnabled", _entity.IsEnabled);
+
+			_entityName.Clear();
+			Editor.GetEntityName(_entity.Id, _entityName);
 
 			EditorGUI.SameLine();
 			if (EditorGUI.Input("##EntityName", _entityName).OnChange)

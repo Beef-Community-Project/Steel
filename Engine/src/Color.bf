@@ -19,17 +19,17 @@ namespace SteelEngine
 			this.a = a;
 		}
 
-		public Color Black => .(0, 0, 0, 1);
-		public Color Blue => .(0, 0, 1, 1);
-		public Color Cyan => .(0, 1, 1, 1);
-		public Color Gray => .(0.5f, 0.5f, 0.5f, 1);
-		public Color Green => .(0, 1, 0, 1);
-		public Color Grey => Gray;
-		public Color Magenta => .(1, 0, 1, 1);
-		public Color Red => .(1, 0, 0, 1);
-		public Color Transparent => .(0, 0, 0, 0);
-		public Color White => .(1, 1, 1, 1);
-		public Color Yellow => .(1, 0.92f, 0.016f, 1);
+		public static Color Black => .(0, 0, 0, 1);
+		public static Color Blue => .(0, 0, 1, 1);
+		public static Color Cyan => .(0, 1, 1, 1);
+		public static Color Gray => .(0.5f, 0.5f, 0.5f, 1);
+		public static Color Green => .(0, 1, 0, 1);
+		public static Color Grey => Gray;
+		public static Color Magenta => .(1, 0, 1, 1);
+		public static Color Red => .(1, 0, 0, 1);
+		public static Color Transparent => .(0, 0, 0, 0);
+		public static Color White => .(1, 1, 1, 1);
+		public static Color Yellow => .(1, 0.92f, 0.016f, 1);
 
 		public static implicit operator Vector4(Self self)
 		{
