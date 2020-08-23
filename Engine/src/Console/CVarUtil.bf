@@ -7,14 +7,23 @@ namespace SteelEngine.Console
 		public static bool TryParse(CVar cvar, Span<StringView> args, ref bool result, out bool didChange)
 		{
 			let currentVal = result;
-			switch (args[0])
+
+			String lowercase = scope String(args[0])..ToLower();
+
+			switch (lowercase)
 			{
-			case "true", "True", "TRUE", "1":
+			case "true", "1":
 				result = true;
-			case "false", "False", "FALSE", "0":
+			case "false", "0":
 				result = false;
 			default:
-				return false;
+				switch (int.Parse(lowercase))
+				{
+				case .Err:
+					return false;
+				case .Ok(let val):
+					result = val != 0;
+				}
 			}
 			didChange = result != currentVal;
 			return true;

@@ -17,8 +17,45 @@ namespace SteelEngine.Console
 				item = new String();
 		}
 
+		public void Resize(int newSize)
+		{
+			if (newSize <= 0 && newSize != _history.Count)
+				return;
+
+			_historyPos = 0;
+
+			String[] newHistory = new String[newSize];
+
+			let count = Math.Min(newHistory.Count, _count);
+			int i;
+			for (i = 0; i < count; i++)
+			{
+				newHistory[i] = StringAt(i+1);
+			}
+			
+			// Delete elements that did not fit into new history
+			for (i = i+1; i <= _count; i++)
+				delete StringAt(i);
+
+			// Allocate elements that were not copied from old history
+			for (i = _history.Count; i < newHistory.Count; i++)
+				newHistory[i] = new String();
+
+			_count = Math.Min(_history.Count, newHistory.Count);
+			_addPos = _count - 1;
+
+			delete _history;
+			_history = newHistory;
+		}
+
 		public void Add(StringView line)
 		{
+			_historyPos = 0;
+
+			// Don't add line if it is same as last entry
+			if(At(1).Equals(line))
+				return;
+
 			_addPos++;
 			_count++;
 			if (_addPos == _history.Count)
@@ -47,10 +84,10 @@ namespace SteelEngine.Console
 			return  At(_historyPos);
 		}
 
-		public StringView At(int index)
+		protected String StringAt(int index)
 		{
 			// index 0 = empty string
-			// index 1 = last addeded entry
+			// index 1 = last added entry
 			// index >= _Count =  first entry in history
 
 			// @TODO(fusion) - revisit this code, have feeling this can be simplified
@@ -62,14 +99,15 @@ namespace SteelEngine.Console
 				return _history[_addPos - index + 1];
 
 			if (index >= _count)
-				return _history[_addPos+1 % _count];
+				return _history[(_addPos+1) % _count];
 
 			var i = (_addPos - index + 1) % _count;
 			if (i < 0)
 				return _history[_count + i];
 
 			return _history[i];
+		}
 
-		}	
+		public StringView At(int index) => StringAt(index);
 	}
 }

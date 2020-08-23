@@ -6,6 +6,7 @@ using SteelEngine.Input;
 using SteelEngine.ECS;
 using SteelEngine.ECS.Systems;
 using SteelEngine.ECS.Components;
+using SteelEngine.Console;
 using glfw_beef;
 
 namespace SteelEngine
@@ -28,6 +29,7 @@ namespace SteelEngine
 		private List<BaseComponent> _componentsToDelete ~ delete _;
 		private List<EntityId> _entitiesToRemoveFromStore ~ delete _;
 		private GLFWInputManager _inputManager = new GLFWInputManager() ~ delete _;
+		private GameConsole _gameConsole = new GameConsole() ~ delete _;
 
 		public this()
 		{
@@ -60,6 +62,8 @@ namespace SteelEngine
 			});
 
 			Log.Trace("Initializing application");
+
+			_gameConsole.Initialize(scope String[]("config.cfg"));
 
 			_components = new Dictionary<ComponentId, BaseComponent>();
 			_componentsToDelete = new List<BaseComponent>();

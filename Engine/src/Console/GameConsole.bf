@@ -7,8 +7,6 @@ namespace SteelEngine
 {
 	class GameConsole
 	{
-		const int HISTORY_SIZE = 50;
-
 		struct ConfigVarValue : IDisposable
 		{
 			public String line;
@@ -38,8 +36,9 @@ namespace SteelEngine
 		Dictionary<StringView, CVar> _cvars = new Dictionary<StringView, CVar>() ~ delete _;
 		Dictionary<StringView, OnCVarChange> _cvarChangedCallbacks = new Dictionary<StringView, OnCVarChange>() ~ delete _;
 		Dictionary<StringView, ConfigVarValue> _configVars = new Dictionary<StringView, ConfigVarValue>() ~ delete _;
-		Queue<String> _enqueuedCommands = new Queue<String>() ~ DeleteContainerAndItems!(_);
-		CommandsHistory _history = new CommandsHistory(HISTORY_SIZE) ~ delete _;
+		Queue<String> _enqueuedCommands = new Queue<String>() ~ delete _;
+		CommandsHistory _history ~ delete _;
+		int32 _historySize = 50;
 
 		int _maxLines = 1000;
 		List<LineEntry> _lines = new List<LineEntry>() ~ delete _;
@@ -50,7 +49,9 @@ namespace SteelEngine
 		float _cvarWaitTime = 0;
 		int _cvarWaitFrames = 0;
 		
-		public LogLevel logLevel = .Trace;
+		public LogLevel logLevel = .Info;
+
+		LogCallback _logCallback = new => OnLogCallback ~ delete _;
 
 		bool _opened = false;
 		public bool IsOpen = _opened;
@@ -68,14 +69,21 @@ namespace SteelEngine
 			for (let cb in _cvarChangedCallbacks.Values)
 				delete cb;
 
+			for (let line in _lines)
+				line.Dispose();
+
 			for (let val in _configVars.Values)
 				val.Dispose();
-
-			Clear();
 		}
 
 		public void Initialize(Span<String> configFiles)
 		{
+			Log.AddCallback(new (str, level) =>
+			{
+				if (level >= logLevel)
+					PrintLine(logLevel, str);
+			});
+
 			for (var file in configFiles)
 			{
 				if (LoadConfigFile(file) case .Err(let err))
@@ -84,13 +92,9 @@ namespace SteelEngine
 				}
 			}
 
-			Initialize();
-		}
+			RegisterVariable("console.historysize", "Size of commands history.", ref _historySize, .Config, new (cvar) => { _historySize = Math.Max(1, _historySize); History.Resize(_historySize); } );
+			_history = new CommandsHistory(_historySize);
 
-		public void Initialize()
-		{
-			Log.AddCallback(new => OnLogCallback);
-				
 			RegisterVariable("console.loglevel", "Minimal level message need to be to be logged into console", ref logLevel, .Config);
 			RegisterVariable("sv.cheats", "Enable execution of commands with Cheat flag.", ref _cvarCheatsEnabled);
 			RegisterVariable("wait.frames", "Wait number of frames before continuing execution of commands.", ref _cvarWaitFrames);
@@ -124,7 +128,7 @@ namespace SteelEngine
 
 			RegisterCommand("exec", "Execute file", new (line, args) =>
 			{
-				if (ExecuteFile(args[0]) case .Err(let err))
+				if (args.Length > 0 && ExecuteFile(args[0]) case .Err(let err))
 				{
 					PrintErrorF("Couldn't execute file {0} ({1}).", args[0], err);
 				}
@@ -136,9 +140,9 @@ namespace SteelEngine
 			});
 		}
 
-		void OnLogCallback(StringView message, LogLevel logLevel)
+		void OnLogCallback(LogLevel logLevel, StringView message)
 		{
-			if (logLevel < this.logLevel)
+			if (logLevel < logLevel)
 				return;
 
 			PrintLine(logLevel, message);
@@ -170,12 +174,17 @@ namespace SteelEngine
 		
 		protected void PrintLine(LogLevel logLevel, StringView message)
 		{
-			if (_lines.Count >= _maxLines)
+			LineEntry entry = LineEntry() { level = logLevel };
+			if (_lines.Count < _maxLines)
 			{
-				_lines.PopFront().Dispose();
+				entry.message = new String(message);
+			}
+			else
+			{
+				entry.message = _lines.PopFront().message..Set(message);
 			}
 
-			_lines.Add(LineEntry() { level = logLevel, message = new .(message) });
+			_lines.Add(entry);
 		}
 
 		protected void PrintLineF(LogLevel logLevel, StringView format, params Object[] args)
@@ -374,7 +383,7 @@ namespace SteelEngine
 			}
 		}
 
-		public void AddHistory(StringView cmdLine)
+		protected void AddHistory(StringView cmdLine)
 		{
 			_history.Add(cmdLine);
 		}

@@ -5,6 +5,8 @@ using System.Diagnostics;
 
 namespace SteelEngine
 {
+	public delegate void LogCallback(LogLevel level, StringView message);
+
 	public static class Log
 	{
 		public static LogLevel LogLevel = .Trace;

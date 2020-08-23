@@ -38,7 +38,7 @@ namespace SteelEditor.Windows
 		{
 			Log.AddCallback(new (str, level) => _log.Add((new String(str), level)));
 
-			_gameConsole.Initialize();
+			_gameConsole.Initialize(scope List<String>());
 		}
 
 		public override void OnRender()
@@ -99,7 +99,7 @@ namespace SteelEditor.Windows
 			var inputCallback = EditorGUI.Input(scope String()..AppendF("##CommandInputBuffer_{}", _commandIndex), _commandBuffer, "", 256);
 			if (inputCallback.OnEnter && !_commandBuffer.IsEmpty)
 			{
-				_gameConsole.AddHistory(_commandBuffer);
+				_gameConsole.[Friend]AddHistory(_commandBuffer);
 
 				ImGui.SetKeyboardFocusHere(-1);
 				_scrollToBottom = true;
