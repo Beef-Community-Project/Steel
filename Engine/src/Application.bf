@@ -25,10 +25,12 @@ namespace SteelEngine
 		private Glfw.ErrorCallback _errorCallback = new => OnGlfwError;
 
 		private List<BaseSystem> _systems ~ DeleteContainerAndItems!(_);
+
 		private Dictionary<ComponentId, BaseComponent> _components ~ delete _;
 		private List<BaseComponent> _componentsToDelete ~ delete _;
 		private List<EntityId> _entitiesToRemoveFromStore ~ delete _;
 		private GLFWInputManager _inputManager = new GLFWInputManager() ~ delete _;
+
 		private GameConsole _gameConsole = new GameConsole() ~ delete _;
 
 		public this()
@@ -172,6 +174,11 @@ namespace SteelEngine
 
 			while (_isRunning)
 			{
+				for (var layer in _layerStack)
+					layer.OnUpdate();
+
+				_window.Update();
+
 				Update();
 				Draw();
 			}

@@ -5,69 +5,115 @@ namespace SteelEngine
 {
 	public class LayerStack : IEnumerable<Layer>
 	{
+		public bool AutoDeleteLayers;
+
 		private List<Layer> _layers = new .();
 		private int _layerInsert = 0;
 
+		public this(bool autoDeleteLayers = true)
+		{
+			AutoDeleteLayers = autoDeleteLayers;
+		}
+
 		public ~this()
 		{
-			for (var layer in _layers)
-			{
-				layer.OnDetach();
-				delete layer;
-			}
-
+			if (AutoDeleteLayers)
+				ClearAndDeleteItems(_layers);
 			delete _layers;
 		}
 
 		public void PushLayer(Layer layer)
 		{
 			_layers.Insert(_layerInsert++, layer);
-			layer.OnAttach();
 		}
 
-		public void PushOverlay(Layer layer)
+		public void PushOverlay(Layer overlay)
 		{
-			_layers.Add(layer);
-			layer.OnAttach();
+			_layers.Add(overlay);
 		}
 
-		public void PopLayer(StringView debugName = "")
+		public void PopLayer()
 		{
-			if (debugName != "")
+			_layerInsert--;
+			_layers.RemoveAt(_layerInsert);
+		}
+
+		public void PopOverlay()
+		{
+			if (_layers.Count > _layerInsert)
+				_layers.PopBack();
+		}
+
+		public void RemoveLayer(StringView debugName)
+		{
+			for (int i = 0; i < _layerInsert; i++)
 			{
-				for (int i = 0; i < _layerInsert; i++)
+				if (_layers[i].[Friend]_debugName == debugName)
 				{
-					if (_layers[i].[Friend]_debugName == debugName)
-					{
-						_layers.RemoveAt(i);
-						_layerInsert--;
-						break;
-					}
-				}	
-			}
-			else
-			{
-				_layers.RemoveAt(--_layerInsert);
+					_layers.RemoveAt(i);
+					_layerInsert--;
+					break;
+				}
 			}
 		}
 
-		public void PopOverlay(StringView debugName)
+		public void RemoveOverlay(StringView debugName)
 		{
-			if (debugName != "")
+			for (int i = _layerInsert; i < _layers.Count; i++)
 			{
-				for (int i = _layerInsert; i < _layers.Count; i++)
+				if (_layers[i].[Friend]_debugName == debugName)
 				{
-					if (_layers[i].[Friend]_debugName == debugName)
-					{
-						_layers.RemoveAt(i);
-						break;
-					}
-				}	
+					_layers.RemoveAt(i);
+					break;
+				}
 			}
-			else
+		}
+
+		public void RemoveLayer<T>() where T : Layer
+		{
+			for (int i = 0; i < _layerInsert; i++)
 			{
-				if (_layers.Count > _layerInsert)
-					_layers.RemoveAt(_layers.Count - 1);
+				if (typeof(T) == _layers[i].GetType())
+				{
+					_layers.RemoveAt(i);
+					return;
+				}
+			}
+		}
+
+		public void RemoveOverlay<T>() where T : Layer
+		{
+			for (int i = _layerInsert; i < _layers.Count; i++)
+			{
+				if (typeof(T) == _layers[i].GetType())
+				{
+					_layers.RemoveAt(i);
+					break;
+				}
+			}
+		}
+		
+		public void RemoveLayer(Layer layer)
+		{
+			for (int i = 0; i < _layerInsert; i++)
+			{
+				if (_layers[i] == layer)
+				{
+					_layers.RemoveAt(i);
+					return;
+				}
+			}
+		}
+
+		public void RemoveOverlay(Layer layer)
+		{
+			for (int i = _layerInsert; i < _layers.Count; i++)
+			{
+				if (_layers[i] == layer)
+				{
+					_layers.RemoveAt(i);
+					return;
+				}
 			}
 		}
 
