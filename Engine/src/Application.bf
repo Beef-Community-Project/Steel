@@ -16,12 +16,13 @@ namespace SteelEngine
 		private Window _window ~ delete _;
 		private Window.EventCallback _eventCallback = new => OnEvent ~ delete _;
 
+		private LayerStack _layerStack = new .() ~ delete _;
+
 		private List<BaseSystem> _systems ~ delete _;
 		private Dictionary<ComponentId, BaseComponent> _components ~ delete _;
 		private List<BaseComponent> _componentsToDelete ~ delete _;
 		private List<EntityId> _entitiesToRemoveFromStore ~ delete _;
 		private GLFWInputManager _inputManager = new GLFWInputManager() ~ delete _;
-
 
 		public this()
 		{
@@ -91,6 +92,11 @@ namespace SteelEngine
 
 			while (_isRunning)
 			{
+				for (var layer in _layerStack)
+					layer.OnUpdate();
+
+				_window.Update();
+
 				Update();
 				Draw();
 			}
@@ -148,6 +154,13 @@ namespace SteelEngine
 
 			var dispatcher = scope EventDispatcher(event);
 			dispatcher.Dispatch<WindowCloseEvent>(scope => OnWindowClose);
+
+			for (var layer in _layerStack)
+			{
+				layer.OnEvent(event);
+				if (event.IsHandled)
+					break;
+			}
 		}
 
 		private bool OnWindowClose(WindowCloseEvent event)

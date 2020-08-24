@@ -1,3 +1,7 @@
+[submodule "Libs/ImGui"]
+	path = Libs/ImGui
+	url = https://github.com/Beef-Community-Project/imgui-beef
+	branch = docking
 [submodule "Libs/GLFW"]
 	path = Libs/GLFW
 	url = https://github.com/MineGame159/glfw-beef.git
