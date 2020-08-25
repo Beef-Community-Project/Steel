@@ -14,6 +14,8 @@ namespace SteelEditor
 		private EditorLayer _editorLayer;
 
 		private Dictionary<EntityId, String> _entityNames = new .();
+		private List<String> _recentProjects = new .() ~ DeleteContainerAndItems!(_);
+		private String _currentProject = new .() ~ delete _;
 
 		public override void OnInit()
 		{
@@ -27,6 +29,9 @@ namespace SteelEditor
 			AddWindow<HierarchyWindow>();
 
 			LoadConfig();
+			LoadCache();
+
+			UpdateTitle();
 		}
 
 		public override void OnCleanup()
@@ -54,6 +59,50 @@ namespace SteelEditor
 				editor._entityNames[id] = new .(name);
 			else
 				editor._entityNames[id].Set(name);
+		}
+
+		public static void OpenCurrentProject(StringView path)
+		{
+			Log.Trace("Opening project: {}", path);
+			SetCurrentProject(path);
+		}
+
+		public static void CloseProject()
+		{
+			Log.Trace("Closing project");
+			SetCurrentProject("");
+		}
+
+		public static void SetCurrentProject(StringView path)
+		{
+			GetInstance<Editor>()._currentProject.Set(path);
+			UpdateTitle();
+		}
+
+		public static void UpdateTitle()
+		{
+			var editor = GetInstance<Editor>();
+			if (editor._currentProject.IsEmpty)
+				editor.Window.SetTitle("Steel Editor");
+			else
+				editor.Window.SetTitle(scope String()..AppendF("Steel Editor - {}", editor._currentProject));
+		}
+
+		private void LoadCache()
+		{
+			var cachePath = scope String();
+			SteelPath.GetEditorUserFile("Cache.txt", cachePath);
+
+			var reader = scope StreamReader();
+			if (reader.Open(cachePath) case .Err)
+				return;
+
+			var line = scope String();
+			while (reader.ReadLine(line) case .Ok)
+			{
+				_recentProjects.Add(new String(line));
+				line.Clear();
+			}
 		}
 
 		public static T GetWindow<T>() where T : EditorWindow

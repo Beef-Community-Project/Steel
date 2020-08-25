@@ -5,6 +5,7 @@ using SteelEngine.Events;
 using SteelEngine.Window;
 using imgui_beef;
 using glfw_beef;
+using System.IO;
 
 namespace SteelEditor
 {
@@ -70,39 +71,7 @@ namespace SteelEditor
 			ImGuiImplGlfw.NewFrame();
 			ImGui.NewFrame();
 
-			if (ImGui.BeginMainMenuBar())
-			{
-				if (ImGui.BeginMenu("File"))
-				{
-					ImGui.EndMenu();
-				}
-
-				if (ImGui.BeginMenu("Edit"))
-				{
-					ImGui.EndMenu();
-				}
-
-				if (ImGui.BeginMenu("View"))
-				{
-					for (var window in _editorWindows)
-					{
-						if (ImGui.MenuItem(window.Title.Ptr))
-							ShowWindow(window);
-					}
-
-					ImGui.EndMenu();
-				}
-
-				if (ImGui.BeginMenu("Create"))
-				{
-					if (ImGui.MenuItem("Entity"))
-						Application.Instance.CreateEntity();
-
-					ImGui.EndMenu();
-				}
-
-				ImGui.EndMainMenuBar();
-			}
+			ShowMainMenuBar();
 
 			// Update ImGui windows
 			for (var window in _editorWindows)
@@ -114,12 +83,90 @@ namespace SteelEditor
 			}
 
 			// Background color
-			ImGuiImplOpengl3GL.glClearColor(0.45f, 0.55f, 0.60f, 1.00f);
+			ImGuiImplOpengl3GL.glClearColor(0.45f, 0.55f, 0.6f, 1);
 			ImGuiImplOpengl3GL.glClear(ImGuiImplOpengl3GL.GL_COLOR_BUFFER_BIT);
 
 			// ImGui rendering
 			ImGui.Render();
 			ImGuiImplOpengl3.RenderDrawData(ImGui.GetDrawData());
+		}
+
+		private void ShowMainMenuBar()
+		{
+			if (ImGui.BeginMainMenuBar())
+			{
+				ShowFileMenu();
+				ShowEditMenu();
+				ShowViewMenu();
+				ShowCreateMenu();
+
+				ImGui.EndMainMenuBar();
+			}
+		}
+
+		private void ShowFileMenu()
+		{
+			if (ImGui.BeginMenu("File"))
+			{
+				ImGui.MenuItem("New");
+				ImGui.MenuItem("Open");
+
+				if (ImGui.BeginMenu("Open Recent"))
+				{
+					ShowRecentProjects();
+					ImGui.EndMenu();
+				}
+
+				if (ImGui.MenuItem("Close Project"))
+					Editor.CloseProject();
+
+				if (ImGui.MenuItem("Exit"))
+					Application.Exit();
+
+				ImGui.EndMenu();
+			}
+		}
+
+		private void ShowRecentProjects()
+		{
+			for (var project in Application.GetInstance<Editor>().[Friend]_recentProjects)
+			{
+				if (ImGui.MenuItem(project))
+					Editor.OpenCurrentProject(project);
+			}
+		}
+
+		private void ShowEditMenu()
+		{
+			if (ImGui.BeginMenu("Edit"))
+			{
+				ImGui.EndMenu();
+			}
+		}
+
+		private void ShowViewMenu()
+		{
+			if (ImGui.BeginMenu("View"))
+			{
+				for (var window in _editorWindows)
+				{
+					if (ImGui.MenuItem(window.Title.Ptr))
+						ShowWindow(window);
+				}
+
+				ImGui.EndMenu();
+			}
+		}
+
+		private void ShowCreateMenu()
+		{
+			if (ImGui.BeginMenu("Create"))
+			{
+				if (ImGui.MenuItem("Entity"))
+					Application.Instance.CreateEntity();
+
+				ImGui.EndMenu();
+			}
 		}
 
 		public void ShowWindow<T>() where T : EditorWindow

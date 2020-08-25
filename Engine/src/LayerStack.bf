@@ -18,30 +18,38 @@ namespace SteelEngine
 		public ~this()
 		{
 			if (AutoDeleteLayers)
+			{
+				for (var layer in _layers)
+					layer.OnDetach();
+
 				ClearAndDeleteItems(_layers);
+			}
+
 			delete _layers;
 		}
 
 		public void PushLayer(Layer layer)
 		{
 			_layers.Insert(_layerInsert++, layer);
+			layer.OnAttach();
 		}
 
 		public void PushOverlay(Layer overlay)
 		{
 			_layers.Add(overlay);
+			overlay.OnAttach();
 		}
 
 		public void PopLayer()
 		{
 			_layerInsert--;
-			_layers.RemoveAt(_layerInsert);
+			_layers.GetAndRemove(_layers[_layerInsert]).Get().OnDetach();
 		}
 
 		public void PopOverlay()
 		{
 			if (_layers.Count > _layerInsert)
-				_layers.PopBack();
+				_layers.PopBack().OnDetach();
 		}
 
 		public void RemoveLayer(StringView debugName)
@@ -50,7 +58,7 @@ namespace SteelEngine
 			{
 				if (_layers[i].[Friend]_debugName == debugName)
 				{
-					_layers.RemoveAt(i);
+					_layers.GetAndRemove(_layers[i]).Get().OnDetach();
 					_layerInsert--;
 					break;
 				}
@@ -63,7 +71,7 @@ namespace SteelEngine
 			{
 				if (_layers[i].[Friend]_debugName == debugName)
 				{
-					_layers.RemoveAt(i);
+					_layers.GetAndRemove(_layers[i]).Get().OnDetach();
 					break;
 				}
 			}
@@ -75,7 +83,7 @@ namespace SteelEngine
 			{
 				if (typeof(T) == _layers[i].GetType())
 				{
-					_layers.RemoveAt(i);
+					_layers.GetAndRemove(_layers[i]).Get().OnDetach();
 					return;
 				}
 			}
@@ -87,7 +95,7 @@ namespace SteelEngine
 			{
 				if (typeof(T) == _layers[i].GetType())
 				{
-					_layers.RemoveAt(i);
+					_layers.GetAndRemove(_layers[i]).Get().OnDetach();
 					break;
 				}
 			}
@@ -99,7 +107,7 @@ namespace SteelEngine
 			{
 				if (_layers[i] == layer)
 				{
-					_layers.RemoveAt(i);
+					_layers.GetAndRemove(_layers[i]).Get().OnDetach();
 					return;
 				}
 			}
@@ -111,7 +119,7 @@ namespace SteelEngine
 			{
 				if (_layers[i] == layer)
 				{
-					_layers.RemoveAt(i);
+					_layers.GetAndRemove(_layers[i]).Get().OnDetach();
 					return;
 				}
 			}

@@ -89,9 +89,8 @@ namespace SteelEngine
 			Dispose();
 		}
 
-		public void Dispose()
+		public virtual void Dispose()
 		{
-			OnCleanup();
 			delete _layerStack;
 
 			Window.Destroy();
@@ -182,6 +181,8 @@ namespace SteelEngine
 				Update();
 				Draw();
 			}
+
+			OnCleanup();
 		}
 
 		// Gets called right after the window is created
@@ -366,6 +367,11 @@ namespace SteelEngine
 			}
 			_entitiesToRemoveFromStore.Add(entity.Id);
 			return true;
+		}
+
+		public static void Exit(int exitCode = 0)
+		{
+			Environment.Exit(exitCode);
 		}
 	}
 }
