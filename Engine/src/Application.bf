@@ -177,7 +177,7 @@ namespace SteelEngine
 				for (var layer in _layerStack)
 					layer.OnUpdate();
 
-				_window.Update();
+				Window.Update();
 
 				Update();
 				Draw();
