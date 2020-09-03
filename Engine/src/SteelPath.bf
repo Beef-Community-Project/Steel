@@ -7,6 +7,7 @@ namespace SteelEngine
 	public static class SteelPath
 	{
 		public static String UserDirectory = new .() ~ delete _;
+		public static String ContentDirectory = new .() ~ delete _;
 
 		public static this()
 		{
@@ -17,33 +18,32 @@ namespace SteelEngine
 				Path.InternalCombine(UserDirectory, envVars["APPDATA"], "Steel");
 
 			DeleteDictionaryAndKeysAndItems!(envVars);
+
+#if DEBUG
+			Directory.GetCurrentDirectory(ContentDirectory);
+#else
+			var executablePath = scope String();
+			Environment.GetExecutableFilePath(executablePath);
+			if (Path.GetDirectoryPath(executablePath, ContentDirectory) case .Err)
+				Log.Fatal("Invalid executable path: '{}'", executablePath);
+#endif
 		}
 
-		public static void GetUserFolder(String relativePath, String target, bool create = false)
+		public static void GetUserPath(String target, params String[] components)
 		{
-			Path.InternalCombine(target, UserDirectory, relativePath);
-
-			if (create && !Directory.Exists(target))
-			{
-				if (Directory.CreateDirectory(target) case .Err(let err))
-					Log.Error("Failed to create user directory: {}", err);
-			}
+			String[] newComponents = new String[components.Count + 1];
+			newComponents[0] = UserDirectory;
+			components.CopyTo(newComponents, 0, 1, components.Count);
+			Path.InternalCombine(target, params newComponents);
+			delete newComponents;
 		}
 
-		public static void GetUserFile(String relativePath, String target, bool create = false)
+		public static void GetGamePath(String target, params String[] components)
 		{
-			Path.InternalCombine(target, UserDirectory, relativePath);
-
-			var dir = scope String();
-			Path.GetDirectoryPath(target, dir);
-			if (create && !Directory.Exists(dir))
-				Directory.CreateDirectory(dir);
-
-			if (create && !File.Exists(target))
-			{
-				if (File.WriteAllText(target, "") case .Err(let err))
-					Log.Error("Failed to create user directory: {}", err);
-			}
+			String[] newComponents = new String[components.Count + 1];
+			newComponents[0] = UserDirectory;
+			components.CopyTo(newComponents, 0, 1, components.Count);
+			Path.InternalCombine(target, params newComponents);
 		}
 	}
 }

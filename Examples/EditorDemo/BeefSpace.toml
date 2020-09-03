@@ -1,0 +1,5 @@
+FileVersion = 1
+Projects = {EditorDemo = {Path = "."}, SteelEngine = {Path = "../../Engine"}, glfw-beef = {Path = "../../Libs/GLFW"}}
+
+[Workspace]
+StartupProject = "EditorDemo"

@@ -8,7 +8,7 @@ namespace SteelEngine.ECS.Systems
 	{
 		protected override void RegisterComponentTypes()
 		{
-			_registeredTypes = new Type[]{ typeof(TextComponent), typeof(TransformComponent) };
+			_registeredTypes = new Type[]( typeof(TextComponent), typeof(TransformComponent) );
 		}
 	}
 }

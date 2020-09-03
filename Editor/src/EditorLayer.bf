@@ -1,11 +1,12 @@
 using System;
 using System.Collections;
+using System.IO;
 using SteelEngine;
 using SteelEngine.Events;
 using SteelEngine.Window;
+using SteelEditor.Windows;
 using imgui_beef;
 using glfw_beef;
-using System.IO;
 
 namespace SteelEditor
 {
@@ -15,7 +16,7 @@ namespace SteelEditor
 		private List<EditorWindow> _editorWindows = new .();
 		private bool _showDemoWindow = false;
 
-		private String _iniPath = new .() ~ delete _;
+		private String _imguiIniPath = new .() ~ delete _;
 		private ImGui.Style _originalStyle;
 
 		public this(Window window) : base("EditorLayer")
@@ -27,10 +28,10 @@ namespace SteelEditor
 		{
 			ImGui.CreateContext();
 
-			SteelPath.GetEditorUserFile("imgui.ini", _iniPath);
+			SteelPath.GetEditorUserPath(_imguiIniPath, "imgui.ini");
 
 			var io = ref ImGui.GetIO();
-			io.IniFilename = _iniPath;
+			io.IniFilename = _imguiIniPath;
 			
 			var style = ref ImGui.GetStyle();
 			style.WindowMenuButtonPosition = .None; // This disables the collapse button on windows
@@ -45,6 +46,8 @@ namespace SteelEditor
 
 			Log.Trace("OpenGL version: {}", ImGuiImplOpengl3.[Friend]g_GlVersion);
 			Log.Trace("GLSL version: {}", ImGuiImplOpengl3.[Friend]g_GlslVersionString);
+
+			Editor.AddWindow<NewProjectWindow>();
 		}
 
 		public override void OnDetach()
@@ -65,7 +68,7 @@ namespace SteelEditor
 		public override void OnUpdate()
 		{
 			var io = ref ImGui.GetIO();
-			var app = Application.Instance;
+			var app = Editor.Instance;
 			io.DisplaySize = ImGui.Vec2(app.Window.GetSize.x, app.Window.GetSize.y);
 			ImGuiImplOpengl3.NewFrame();
 			ImGuiImplGlfw.NewFrame();
@@ -76,10 +79,13 @@ namespace SteelEditor
 			// Update ImGui windows
 			for (var window in _editorWindows)
 			{
-				if (!window.IsActive && !window.IsClosed)
-					CloseWindow(window);
-				else
+				if (window.IsClosed)
+					continue;
+
+				if (window.IsActive)
 					window.Update();
+				else
+					CloseWindow(window);
 			}
 
 			// Background color
@@ -108,14 +114,20 @@ namespace SteelEditor
 		{
 			if (ImGui.BeginMenu("File"))
 			{
-				ImGui.MenuItem("New");
-				ImGui.MenuItem("Open");
+				if (ImGui.MenuItem("New"))
+					NewProject();
+
+				if (ImGui.MenuItem("Open"))
+					OpenProject();
 
 				if (ImGui.BeginMenu("Open Recent"))
 				{
 					ShowRecentProjects();
 					ImGui.EndMenu();
 				}
+
+				if (ImGui.MenuItem("Save", "CTRL+S"))
+					Editor.Save();
 
 				if (ImGui.MenuItem("Close Project"))
 					Editor.CloseProject();
@@ -127,12 +139,21 @@ namespace SteelEditor
 			}
 		}
 
+		private void NewProject()
+		{
+			Editor.ShowWindow<NewProjectWindow>();
+		}
+
 		private void ShowRecentProjects()
 		{
-			for (var project in Application.GetInstance<Editor>().[Friend]_recentProjects)
+			var cache = Application.GetInstance<Editor>().[Friend]_cache;
+			if (cache.RecentProjects == null)
+				return;
+
+			for (var projectPath in cache.RecentProjects)
 			{
-				if (ImGui.MenuItem(project))
-					Editor.OpenCurrentProject(project);
+				if (ImGui.MenuItem(projectPath))
+					Editor.OpenProject(projectPath);
 			}
 		}
 
@@ -163,9 +184,26 @@ namespace SteelEditor
 			if (ImGui.BeginMenu("Create"))
 			{
 				if (ImGui.MenuItem("Entity"))
+				{
 					Application.Instance.CreateEntity();
+					Editor.InvalidateSave();
+				}
 
 				ImGui.EndMenu();
+			}
+		}
+
+		private void OpenProject()
+		{
+			var dialog = scope FolderBrowserDialog();
+			if (dialog.ShowDialog() case .Ok(let val))
+			{
+				if (val == .OK)
+					Editor.OpenProject(dialog.SelectedPath);
+			}
+			else
+			{
+				Log.Error("Could not show folder browser dialog");
 			}
 		}
 

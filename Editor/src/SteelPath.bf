@@ -5,18 +5,13 @@ namespace SteelEngine
 {
 	extension SteelPath
 	{
-		public static void GetEditorUserFolder(String relativePath, String target, bool create = false)
+		public static void GetEditorUserPath(String target, params String[] components)
 		{
-			var path = scope String();
-			Path.InternalCombine(path, "Editor", relativePath);
-			GetUserFolder(path, target, create);
-		}
-
-		public static void GetEditorUserFile(String relativePath, String target, bool create = false)
-		{
-			var path = scope String();
-			Path.InternalCombine(path, "Editor", relativePath);
-			GetUserFile(path, target, create);
+			var newComponents = new String[components.Count + 1];
+			newComponents[0] = "Editor";
+			components.CopyTo(newComponents, 0, 1, components.Count);
+			GetUserPath(target, params newComponents);
+			delete newComponents;
 		}
 	}
 }

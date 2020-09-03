@@ -11,9 +11,12 @@ namespace SteelEditor
 	{
 		private static InputCallback _inputCallback = .(.None);
 		private static Dictionary<String, InputTextBuffer> _inputTextBuffers = new .() ~ DeleteDictionaryAndKeysAndItems!(_);
+
 		private static bool _popItemWidth = false;
 		private static bool _popItemColor = false;
 		private static bool _popItemID = false;
+		private static bool _useColumns = true;
+
 		private static uint _collapsableHeaderCount = 0;
 
 		// Window
@@ -26,6 +29,7 @@ namespace SteelEditor
 		public static void EndWindow()
 		{
 			ImGui.End();
+			AddColumns();
 		}
 
 		// Text
@@ -43,18 +47,20 @@ namespace SteelEditor
 			return isSelected;
 		}
 
-		public static bool Label(StringView label)
+		public static bool Label(StringView label, bool newLine = false)
 		{
 			if (label.StartsWith("##"))
 				return false;
 
-			ImGui.Columns(2);
+			if (_useColumns)
+				ImGui.Columns(2);
 			ImGui.AlignTextToFramePadding();
 
 			Text(label);
 			CheckItem(false);
 
-			ImGui.SameLine(22);
+			if (!newLine)
+				SameLine();
 			FillWidth();
 
 			return true;
@@ -122,9 +128,9 @@ namespace SteelEditor
 			CheckItem();
 		}
 
-		public static InputCallback Input(StringView label, String buffer, StringView hint = "", int maxSize = 256)
+		public static InputCallback Input(StringView label, String buffer, StringView hint = "", int maxSize = 256, bool readOnly = false, bool newLine = false)
 		{
-			bool hasLabel = Label(label);
+			bool hasLabel = Label(label, newLine);
 			if (!hasLabel)
 				ImGui.Columns(1);
 
@@ -145,6 +151,8 @@ namespace SteelEditor
 			bool isEnter = false;
 
 			ImGui.InputTextFlags flags = .EnterReturnsTrue | .CallbackHistory | .CallbackCompletion;
+			if (readOnly)
+				flags |= .ReadOnly;
 
 			if (hint != "")
 				isEnter = ImGui.InputTextWithHint(scope UniqueLabel(label, "Input"), hint.Ptr, inputTextBuffer.Ptr, (uint) maxSize, flags, => InputTextCallback);
@@ -344,6 +352,12 @@ namespace SteelEditor
 		public static void RemoveColumns()
 		{
 			ImGui.Columns(1);
+			_useColumns = false;
+		}
+
+		public static void AddColumns()
+		{
+			_useColumns = true;
 		}
 
 		public static void NewLine()
@@ -387,7 +401,7 @@ namespace SteelEditor
 				_popItemID = false;
 			}
 
-			if (nextColumn)
+			if (nextColumn && _useColumns)
 				ImGui.NextColumn();
 		}
 

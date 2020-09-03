@@ -5,7 +5,9 @@ using SteelEngine;
 using SteelEngine.Window;
 using SteelEngine.ECS;
 using SteelEditor.Windows;
+using SteelEditor.Serialization;
 using imgui_beef;
+using JSON_Beef.Serialization;
 
 namespace SteelEditor
 {
@@ -14,8 +16,10 @@ namespace SteelEditor
 		private EditorLayer _editorLayer;
 
 		private Dictionary<EntityId, String> _entityNames = new .();
-		private List<String> _recentProjects = new .() ~ DeleteContainerAndItems!(_);
-		private String _currentProject = new .() ~ delete _;
+		private EditorCache _cache = new .(true) ~ delete _;
+		private bool _wantsSave = false;
+
+		public EditorProject CurrentProject = EditorProject.UntitledProject() ~ delete _;
 
 		public override void OnInit()
 		{
@@ -37,10 +41,17 @@ namespace SteelEditor
 		public override void OnCleanup()
 		{
 			SaveConfig();
+			SaveCache();
 
 			for (var value in _entityNames.Values)
 				delete value;
 			delete _entityNames;
+		}
+
+		public static void InvalidateSave()
+		{
+			GetInstance<Editor>()._wantsSave = true;
+			UpdateTitle();
 		}
 
 		public static void GetEntityName(EntityId id, String buffer)
@@ -61,47 +72,167 @@ namespace SteelEditor
 				editor._entityNames[id].Set(name);
 		}
 
-		public static void OpenCurrentProject(StringView path)
+		public static void OpenProject(StringView path)
 		{
-			Log.Trace("Opening project: {}", path);
-			SetCurrentProject(path);
+			Log.Info("Opening project: {}", path);
+
+			var filePath = scope String();
+			Path.InternalCombine(filePath, scope String(path), "SteelProj.json");
+
+			if (!File.Exists(filePath))
+			{
+				Log.Error("Could not open project ({}): Not a Steel project", path);
+				return;
+			}
+
+			var json = new String();
+			defer delete json;
+
+			if (File.ReadAllText(filePath, json) case .Err(let err))
+			{
+				Log.Error("Could not open project ({}): {}", path, err);
+				return;
+			}
+
+			var editor = GetInstance<Editor>();
+			delete editor.CurrentProject;
+			editor.CurrentProject = new .();
+
+			for (var entity in Entity.EntityStore.Values)
+				delete entity;
+			Entity.EntityStore.Clear();
+
+			if (JSONDeserializer.Deserialize<EditorProject>(json, editor.CurrentProject) case .Err(let err))
+			{
+				Log.Error("Could not open project ({}): {}", path, err);
+				return;
+			}
+
+			for (var serializableEntity in editor.CurrentProject.Entities)
+				serializableEntity.MakeEntity();
+
+			editor.CurrentProject.Path = new .(path);
+			UpdateTitle();
+
+			editor._cache.AddRecentProject(path);
+
+			InspectorWindow.SetCurrentEntity(null);
 		}
 
 		public static void CloseProject()
 		{
-			Log.Trace("Closing project");
-			SetCurrentProject("");
-		}
+			Log.Info("Closing project");
 
-		public static void SetCurrentProject(StringView path)
-		{
-			GetInstance<Editor>()._currentProject.Set(path);
+			var editor = GetInstance<Editor>();
+			delete editor.CurrentProject;
+			editor.CurrentProject = EditorProject.UntitledProject();
 			UpdateTitle();
 		}
 
 		public static void UpdateTitle()
 		{
 			var editor = GetInstance<Editor>();
-			if (editor._currentProject.IsEmpty)
-				editor.Window.SetTitle("Steel Editor");
+			var title = scope String();
+
+			if (editor.CurrentProject.Path.IsEmpty)
+				title.AppendF("Steel Editor - {}", editor.CurrentProject.Name);
 			else
-				editor.Window.SetTitle(scope String()..AppendF("Steel Editor - {}", editor._currentProject));
+				title.AppendF("Steel Editor - {}", editor.CurrentProject.Path);
+
+			if (editor._wantsSave)
+				title.Append('*');
+
+			editor.Window.SetTitle(title);
 		}
 
-		private void LoadCache()
+		public static void Save()
 		{
-			var cachePath = scope String();
-			SteelPath.GetEditorUserFile("Cache.txt", cachePath);
+			Log.Trace("Saving project");
 
-			var reader = scope StreamReader();
-			if (reader.Open(cachePath) case .Err)
-				return;
+			var editor = GetInstance<Editor>();
 
-			var line = scope String();
-			while (reader.ReadLine(line) case .Ok)
+			editor.CurrentProject.Entities.Clear();
+			for (var entity in Entity.EntityStore.Values)
 			{
-				_recentProjects.Add(new String(line));
-				line.Clear();
+				var entityName = scope String();
+				GetEntityName(entity.Id, entityName);
+				editor.CurrentProject.Entities.Add(new .(entityName, entity));
+			}
+
+			var result = JSONSerializer.Serialize<String>(editor.CurrentProject);
+			if (result case .Err)
+			{
+				Log.Error("Could not save project: Serialization error");
+				return;
+			}
+
+			var json = result.Get();
+			defer delete json;
+
+			var projectFilePath = scope String();
+			Path.InternalCombine(projectFilePath, editor.CurrentProject.Path, "SteelProj.json");
+
+			if (File.WriteAllText(projectFilePath, json) case .Err)
+				Log.Error("Could not save cache: File error");
+
+			editor._wantsSave = false;
+			UpdateTitle();
+
+			SaveCache();
+		}
+
+		public static void SaveCache()
+		{
+			Log.Trace("Saving cache");
+
+			var editor = GetInstance<Editor>();
+			editor._cache.Update(editor);
+			editor._cache.MakeSerializable();
+
+			var result = JSONSerializer.Serialize<String>(editor._cache);
+			if (result case .Err)
+			{
+				Log.Error("Could not save cache: Serialization error");
+				return;
+			}
+
+			var json = result.Get();
+			defer delete json;
+
+			var cachePath = scope String();
+			SteelPath.GetEditorUserPath(cachePath, "Cache.json");
+
+			if (File.WriteAllText(cachePath, json) case .Err)
+				Log.Error("Could not save cache: File error");
+		}
+
+		private static void LoadCache()
+		{
+			Log.Trace("Loading cache");
+
+			var cachePath = scope String();
+			SteelPath.GetEditorUserPath(cachePath, "Cache.json");
+
+			var json = new String();
+			defer delete json;
+
+			if (File.ReadAllText(cachePath, json) case .Err(let err))
+			{
+				Log.Error("Could not load cache: {}", err);
+				return;
+			}
+
+			var editor = GetInstance<Editor>();
+
+			if (editor._cache != null)
+				delete editor._cache;
+			editor._cache = new .();
+
+			if (JSONDeserializer.Deserialize<EditorCache>(json, editor._cache) case .Err(let err))
+			{
+				Log.Error("Could not load cache: {}", err);
+				delete editor._cache;
+				editor._cache = new .(true);
 			}
 		}
 
@@ -219,7 +350,7 @@ namespace SteelEditor
 			delete config;
 
 			var configPath = scope String();
-			SteelPath.GetEditorUserFile("Config.txt", configPath, true);
+			SteelPath.GetEditorUserPath(configPath, "Config.txt");
 
 			if (File.WriteAllText(configPath, serialized) case .Err)
 				Log.Error("Failed to save style");
@@ -247,7 +378,7 @@ namespace SteelEditor
 		public static void LoadConfig()
 		{
 			var configPath = scope String();
-			SteelPath.GetEditorUserFile("Config.txt", configPath);
+			SteelPath.GetEditorUserPath(configPath, "Config.txt");
 			var serialized = new String();
 			if (File.ReadAllText(configPath, serialized) case .Err)
 			{

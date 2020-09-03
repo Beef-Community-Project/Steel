@@ -13,6 +13,14 @@ namespace System
 			buffer.Append(parts.Back);
 		}
 	}
+
+	extension String
+	{
+		public void MakeSerializable()
+		{
+			Replace("\\", "\\\\");
+		}
+	}
 }
 
 namespace System.Reflection

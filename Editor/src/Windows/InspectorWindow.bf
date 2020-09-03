@@ -32,14 +32,24 @@ namespace SteelEditor.Windows
 			Editor.GetEntityName(_entity.Id, _entityName);
 
 			EditorGUI.SameLine();
+			EditorGUI.ItemWidth(-25);
 			if (EditorGUI.Input("##EntityName", _entityName).OnChange)
 				Editor.SetEntityName(_entity.Id, _entityName);
+
+			EditorGUI.AlignFromRight(25);
+			if (EditorGUI.Button("X"))
+			{
+				Application.Instance.[Friend]RemoveEntity(_entity);
+				SetCurrentEntity(null);
+				Editor.InvalidateSave();
+				return;
+			}	
 
 			EditorGUI.Line();
 
 			var componentsToRender = scope List<BaseComponent>();
 
-			for (var component in Application.Instance.[Friend]_components.Values)
+			for (var component in Editor.Instance.[Friend]_components.Values)
 				if (component.Parent == _entity)
 					componentsToRender.Add(component);
 

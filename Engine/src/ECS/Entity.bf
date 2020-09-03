@@ -7,7 +7,7 @@ namespace SteelEngine.ECS
 {
 	typealias EntityId = uint64;
 
-	[Reflect]
+	[Reflect, AlwaysInclude(AssumeInstantiated=true, IncludeAllMethods=true)]
 	public class Entity
 	{
 		public this()

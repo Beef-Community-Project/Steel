@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.IO;
 using SteelEngine.Window;
 using SteelEngine.Events;
 using SteelEngine.Input;
@@ -13,7 +14,7 @@ namespace SteelEngine
 {
 	public abstract class Application : IDisposable
 	{
-		public static Application Instance = null;
+		public static Application Instance;
 
 		private bool _isRunning = false;
 
@@ -84,28 +85,6 @@ namespace SteelEngine
 			CreateSystem<BehaviorSystem>();
 		}
 
-		public ~this()
-		{
-			Dispose();
-		}
-
-		public virtual void Dispose()
-		{
-			delete _layerStack;
-
-			Window.Destroy();
-			delete Window;
-
-			// Order of deletion is important. Deleting from lowest to highest abstraction is safe.
-			for (let item in _components)
-				delete item.value;
-
-			_components.Clear();
-
-			for (let item in Entity.EntityStore)
-				delete item.value;
-		}
-
 		/// <summary>
 		/// Creates a new <see cref="SteelEngine.ECS.BaseSystem"/>. This operation is expensive, as it runs through all entities and registers viable ones to the new system.
 		/// Systems should be added as close to the start of the <see cref="SteelEngine.Application"/> as possible to avoid slowdowns.
@@ -160,6 +139,7 @@ namespace SteelEngine
 
 			Time.[Friend]Initialize();
 			_inputManager.Initialize();
+
 			for (let system in _systems)
 			{
 				switch (system.[Friend]Initialize())
@@ -257,6 +237,20 @@ namespace SteelEngine
 		public static T GetInstance<T>() where T : Application
 		{
 			return (T) Instance;
+		}
+
+		struct PosColorVertex
+		{
+			public this(float x, float y, float z, uint32 abgr)
+			{
+				this.x = x;
+				this.y = y;
+				this.z = z;
+				this.abgr = abgr;
+			}
+
+			float x, y, z;
+			uint32 abgr;
 		}
 
 		private void Draw()
@@ -372,6 +366,28 @@ namespace SteelEngine
 		public static void Exit(int exitCode = 0)
 		{
 			Environment.Exit(exitCode);
+		}
+
+		public ~this()
+		{
+			Dispose();
+		}
+
+		public virtual void Dispose()
+		{
+			delete _layerStack;
+
+			Window.Destroy();
+			delete Window;
+
+			// Order of deletion is important. Deleting from lowest to highest abstraction is safe.
+			for (let item in _components)
+				delete item.value;
+
+			_components.Clear();
+
+			for (let item in Entity.EntityStore)
+				delete item.value;
 		}
 	}
 }

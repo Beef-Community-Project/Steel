@@ -1,6 +1,6 @@
 FileVersion = 1
-Projects = {SteelEngine = {Path = "Engine"}, SteelEditor = {Path = "Editor"}, glfw-beef = {Path = "Libs/GLFW"}, imgui-impl-opengl3 = {Path = "Libs/imgui/imgui-impl-opengl3"}, imgui-impl-glfw = {Path = "Libs/imgui/imgui-impl-glfw"}, imgui-beef = {Path = "Libs/imgui/imgui-beef"}}
-Locked = ["glfw-beef", "imgui-impl-opengl3", "imgui-impl-glfw", "imgui-beef"]
+Projects = {SteelEngine = {Path = "Engine"}, SteelEditor = {Path = "Editor"}, glfw-beef = {Path = "Libs/GLFW"}, imgui-impl-opengl3 = {Path = "Libs/imgui/imgui-impl-opengl3"}, imgui-impl-glfw = {Path = "Libs/imgui/imgui-impl-glfw"}, imgui-beef = {Path = "Libs/imgui/imgui-beef"}, BeefExtensionsLib = {Path = "Libs/Beef-Extensions-Lib"}, JSON_Beef = {Path = "Libs/JSON_Beef/lib"}}
+Locked = ["glfw-beef", "imgui-impl-opengl3", "imgui-impl-glfw", "imgui-beef", "BeefExtensionsLib", "JSON_Beef"]
 
 [Workspace]
 StartupProject = "SteelEditor"

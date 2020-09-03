@@ -7,3 +7,9 @@
 [submodule "BGFX"]
 	path = Libs/BGFX
 	url = https://github.com/ExoKomodo/Bgfx-bf
+[submodule "JSON_Beef"]
+	path = Libs/JSON_Beef
+	url = https://github.com/Jonathan-Racaud/JSON_Beef
+[submodule "Beef-Extensions-Lib"]
+	path = Libs/Beef-Extensions-Lib
+	url = https://github.com/Jonathan-Racaud/Beef-Extensions-Lib
