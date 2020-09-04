@@ -7,3 +7,4 @@ StartupObject = "SteelEditor.Program"
 
 [Configs.Debug.Win64]
 BeefLibType = "DynamicDebug"
+DebugWorkingDirectory = "$(WorkspaceDir)"

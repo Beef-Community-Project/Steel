@@ -69,7 +69,79 @@ namespace SteelEditor.Windows
 		{
 			Log.Info("Creating project '{}' at '{}'", _projectName, _projectPath);
 
+#if DEBUG
+			var samplePath = scope String();
+			SteelPath.GetEditorSamplePath(samplePath, "NewProject");
+			Directory.Copy(samplePath, _projectPath);
+#else
+			#error Not Implemented: Get Editor installation path
+#endif
 
+			ReplaceMacros(scope String(_projectPath));
+			Editor.OpenProject(_projectPath);
+		}
+
+		private void ReplaceMacros(String path)
+		{
+			for (var file in Directory.EnumerateFiles(path))
+			{
+				var filePath = scope String();
+				file.GetFilePath(filePath);
+				ReplaceMacrosInFile(filePath);
+
+				var fileName = scope String();
+				file.GetFileName(fileName);
+				if (ReplaceMacrosInString(fileName))
+				{
+					var newFilePath = scope String();
+					Path.InternalCombine(newFilePath, path, fileName);
+					File.Move(filePath, newFilePath);
+				}
+			}
+
+			for (var dir in Directory.EnumerateDirectories(path))
+			{
+				path.Clear();
+				dir.GetFilePath(path);
+				ReplaceMacros(path);
+
+				var fileName = scope String();
+				Path.GetFileName(path, fileName);
+
+				if (ReplaceMacrosInString(fileName))
+				{
+					while (path.EndsWith(Path.DirectorySeparatorChar) | path.EndsWith(Path.AltDirectorySeparatorChar))
+						path.RemoveFromEnd(1);
+
+					var parentDirPath = scope String();
+					Path.GetDirectoryPath(path, parentDirPath);
+
+					var newFilePath = scope String();
+					Path.InternalCombine(newFilePath, parentDirPath, fileName);
+					File.Move(path, newFilePath);
+				}
+			}
+		}
+
+		private void ReplaceMacrosInFile(StringView path)
+		{
+			var fileContent = new String();
+			File.ReadAllText(path, fileContent);
+
+			if (ReplaceMacrosInString(fileContent))
+				File.WriteAllText(path, fileContent);
+
+			delete fileContent;
+		}
+
+		private bool ReplaceMacrosInString(String string)
+		{
+			var prevString = new String(string);
+			defer delete prevString;
+
+			string.Replace("$(ProjectName)", _projectName);
+
+			return string != prevString;
 		}
 	}
 }
