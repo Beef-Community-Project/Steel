@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using SteelEditor;
 
 namespace SteelEngine
 {
@@ -22,6 +23,14 @@ namespace SteelEngine
 			components.CopyTo(newComponents, 0, 2, components.Count);
 			Path.InternalCombine(target, params newComponents);
 			delete newComponents;
+		}
+
+		public static void SetContentDirectory()
+		{
+			ContentDirectory.Clear();
+			var projectPath = Application.GetInstance<Editor>().CurrentProject.Path;
+			if (!projectPath.IsEmpty)
+				Path.InternalCombine(ContentDirectory, projectPath, "Content");
 		}
 	}
 }

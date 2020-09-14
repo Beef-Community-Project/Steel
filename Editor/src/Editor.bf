@@ -26,11 +26,12 @@ namespace SteelEditor
 			_editorLayer = new .(Window);
 			PushOverlay(_editorLayer);
 
-			AddWindow<TestWindow>();
-			AddWindow<StyleWindow>();
-			AddWindow<ConsoleWindow>();
-			AddWindow<InspectorWindow>();
-			AddWindow<HierarchyWindow>();
+			Registerindow<TestWindow>();
+			Registerindow<StyleWindow>();
+			Registerindow<ConsoleWindow>();
+			Registerindow<InspectorWindow>();
+			Registerindow<HierarchyWindow>();
+			Registerindow<ContentWindow>();
 
 			LoadConfig();
 			LoadCache();
@@ -117,6 +118,8 @@ namespace SteelEditor
 			editor._cache.AddRecentProject(path);
 
 			InspectorWindow.SetCurrentEntity(null);
+
+			SteelPath.SetContentDirectory();
 		}
 
 		public static void CloseProject()
@@ -246,19 +249,19 @@ namespace SteelEditor
 			GetInstance<Editor>()._editorLayer.ShowWindow<T>();
 		}
 
-		public static void ShowWindow(StringView windowName)
+		public static void RegisterWindow(StringView windowName)
 		{
-			GetInstance<Editor>()._editorLayer.ShowWindow(windowName);
+			GetInstance<Editor>()._editorLayer.RegisterWindow(windowName);
 		}
 
-		public static void ShowWindow(EditorWindow window)
+		public static void RegisterWindow(EditorWindow window)
 		{
-			GetInstance<Editor>()._editorLayer.ShowWindow(window);
+			GetInstance<Editor>()._editorLayer.RegisterWindow(window);
 		}
 
-		public static void AddWindow<T>() where T : EditorWindow
+		public static void Registerindow<T>() where T : EditorWindow
 		{
-			GetInstance<Editor>()._editorLayer.AddWindow<T>();
+			GetInstance<Editor>()._editorLayer.RegisterWindow<T>();
 		}
 
 		public static void CloseWindow(EditorWindow window)
@@ -458,7 +461,7 @@ namespace SteelEditor
 
 			var windows = (List<Object>) config["Windows"];
 			for (var window in windows)
-				ShowWindow((String) window);
+				RegisterWindow((String) window);
 
 			for (var value in config.Values)
 				DeleteObject(value);

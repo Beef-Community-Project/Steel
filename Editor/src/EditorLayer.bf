@@ -47,7 +47,7 @@ namespace SteelEditor
 			Log.Trace("OpenGL version: {}", ImGuiImplOpengl3.[Friend]g_GlVersion);
 			Log.Trace("GLSL version: {}", ImGuiImplOpengl3.[Friend]g_GlslVersionString);
 
-			Editor.AddWindow<NewProjectWindow>();
+			Editor.Registerindow<NewProjectWindow>();
 		}
 
 		public override void OnDetach()
@@ -172,7 +172,7 @@ namespace SteelEditor
 				for (var window in _editorWindows)
 				{
 					if (ImGui.MenuItem(window.Title.Ptr))
-						ShowWindow(window);
+						RegisterWindow(window);
 				}
 
 				ImGui.EndMenu();
@@ -213,7 +213,7 @@ namespace SteelEditor
 			{
 				if (window.GetType() == typeof(T))
 				{
-					ShowWindow(window);
+					RegisterWindow(window);
 					return;
 				}
 			}
@@ -226,19 +226,19 @@ namespace SteelEditor
 			Log.Error("{} does not exist in application", typeName);
 		}
 
-		public void ShowWindow(StringView windowName)
+		public void RegisterWindow(StringView windowName)
 		{
 			for (var window in _editorWindows)
 			{
 				if (window.Title == windowName)
 				{
-					ShowWindow(window);
+					RegisterWindow(window);
 					break;
 				}
 			}
 		}
 
-		public void ShowWindow(EditorWindow window)
+		public void RegisterWindow(EditorWindow window)
 		{
 			if (!window.IsActive)
 			{
@@ -255,7 +255,7 @@ namespace SteelEditor
 			}
 		}
 
-		public void AddWindow<T>() where T : EditorWindow
+		public void RegisterWindow<T>() where T : EditorWindow
 		{
 			_editorWindows.Add(new T());
 		}

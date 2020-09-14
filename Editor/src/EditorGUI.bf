@@ -16,6 +16,7 @@ namespace SteelEditor
 		private static bool _popItemColor = false;
 		private static bool _popItemID = false;
 		private static bool _useColumns = true;
+		private static bool _visibleSeparator = false;
 
 		private static uint _collapsableHeaderCount = 0;
 
@@ -371,6 +372,18 @@ namespace SteelEditor
 		{
 			ImGui.PushStyleColor(.Text, color);
 			_popItemColor = true;
+		}
+
+		public static void VisibleSeparator()
+		{
+			ImGui.PopStyleColor();
+			_visibleSeparator = true;
+		}
+
+		public static void InvisibleSeparator()
+		{
+			ImGui.PushStyleColor(.Separator, Color.Transparent.Normalized);
+			_visibleSeparator = false;
 		}
 
 		// Other

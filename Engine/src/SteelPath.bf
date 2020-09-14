@@ -18,6 +18,11 @@ namespace SteelEngine
 				Path.InternalCombine(UserDirectory, envVars["APPDATA"], "Steel");
 
 			DeleteDictionaryAndKeysAndItems!(envVars);
+		}
+
+		public static void SetContentDirectory()
+		{
+			ContentDirectory.Clear();
 
 #if DEBUG
 			Directory.GetCurrentDirectory(ContentDirectory);

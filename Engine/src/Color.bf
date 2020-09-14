@@ -19,6 +19,8 @@ namespace SteelEngine
 			this.a = a;
 		}
 
+		public Color Normalized => .(r / 255, b / 255, g / 255, a / 255);
+
 		public static Color Black => .(0, 0, 0, 1);
 		public static Color Blue => .(0, 0, 1, 1);
 		public static Color Cyan => .(0, 1, 1, 1);
