@@ -10,3 +10,6 @@
 [submodule "Beef-Extensions-Lib"]
 	path = Libs/Beef-Extensions-Lib
 	url = https://github.com/Jonathan-Racaud/Beef-Extensions-Lib
+[submodule "ImGui"]
+	path = Libs/ImGui
+	url = https://github.com/RogueMacro/imgui-beef
