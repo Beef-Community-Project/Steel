@@ -5,7 +5,7 @@ using SteelEngine;
 using SteelEngine.Events;
 using SteelEngine.Window;
 using SteelEditor.Windows;
-using imgui_beef;
+using ImGui;
 using glfw_beef;
 
 namespace SteelEditor
@@ -14,7 +14,6 @@ namespace SteelEditor
 	{
 		private Window _window;
 		private List<EditorWindow> _editorWindows = new .();
-		private bool _showDemoWindow = false;
 
 		private String _imguiIniPath = new .() ~ delete _;
 		private ImGui.Style _originalStyle;
@@ -26,12 +25,17 @@ namespace SteelEditor
 
 		public override void OnAttach()
 		{
+			if (!ImGui.CHECKVERSION())
+				Log.Fatal("There is a problem with ImGui");
+			
 			ImGui.CreateContext();
-
+			
 			SteelPath.GetEditorUserPath(_imguiIniPath, "imgui.ini");
 
 			var io = ref ImGui.GetIO();
 			io.IniFilename = _imguiIniPath;
+			io.ConfigFlags |= .DockingEnable | .ViewportsEnable;
+			io.ConfigViewportsNoDecoration = false;
 			
 			var style = ref ImGui.GetStyle();
 			style.WindowMenuButtonPosition = .None; // This disables the collapse button on windows
@@ -42,10 +46,7 @@ namespace SteelEditor
 			_originalStyle = style;
 
 			ImGuiImplGlfw.InitForOpenGL(_window.GetHandle, true);
-			ImGuiImplOpengl3.Init(=> Glfw.GetProcAddress);
-
-			Log.Trace("OpenGL version: {}", ImGuiImplOpengl3.[Friend]g_GlVersion);
-			Log.Trace("GLSL version: {}", ImGuiImplOpengl3.[Friend]g_GlslVersionString);
+			ImGuiImplOpenGL3.Init();
 
 			Editor.Registerindow<NewProjectWindow>();
 		}
@@ -60,7 +61,7 @@ namespace SteelEditor
 
 			delete _editorWindows;
 
-			ImGuiImplOpengl3.Shutdown();
+			ImGuiImplOpenGL3.Shutdown();
 			ImGuiImplGlfw.Shutdown();
 			ImGui.DestroyContext();
 		}
@@ -70,11 +71,12 @@ namespace SteelEditor
 			var io = ref ImGui.GetIO();
 			var app = Editor.Instance;
 			io.DisplaySize = ImGui.Vec2(app.Window.GetSize.x, app.Window.GetSize.y);
-			ImGuiImplOpengl3.NewFrame();
+			ImGuiImplOpenGL3.NewFrame();
 			ImGuiImplGlfw.NewFrame();
 			ImGui.NewFrame();
 
 			ShowMainMenuBar();
+			ShowDockspace();
 
 			// Update ImGui windows
 			for (var window in _editorWindows)
@@ -89,12 +91,39 @@ namespace SteelEditor
 			}
 
 			// Background color
-			ImGuiImplOpengl3GL.glClearColor(0.45f, 0.55f, 0.6f, 1);
-			ImGuiImplOpengl3GL.glClear(ImGuiImplOpengl3GL.GL_COLOR_BUFFER_BIT);
+			// ImGuiImplOpenGL3.glClearColor(0.45f, 0.55f, 0.6f, 1);
+			// ImGuiImplOpenGL3.glClear(ImGuiImplOpenGL3.GL_COLOR_BUFFER_BIT);
 
-			// ImGui rendering
+			// Rendering
 			ImGui.Render();
-			ImGuiImplOpengl3.RenderDrawData(ImGui.GetDrawData());
+			ImGuiImplOpenGL3.RenderDrawData(&ImGui.GetDrawData());
+
+			if (io.ConfigFlags.HasFlag(.ViewportsEnable))
+			{
+				GlfwWindow* glfwContextBackup = Glfw.GetCurrentContext();
+				ImGui.UpdatePlatformWindows();
+				ImGui.RenderPlatformWindowsDefault();
+				Glfw.MakeContextCurrent(glfwContextBackup);
+			}
+		}
+
+		private void ShowDockspace()
+		{
+			var viewport = ImGui.GetMainViewport();
+			ImGui.SetNextWindowPos(viewport.Pos);
+			ImGui.SetNextWindowSize(viewport.Size);
+			ImGui.SetNextWindowViewport(viewport.ID);
+
+			ImGui.PushStyleVar(.WindowPadding, .(0, 0));
+			ImGui.PushStyleVar(.WindowRounding, 0.0f);
+			ImGui.PushStyleVar(.WindowBorderSize, 0.0f);
+			ImGui.WindowFlags windowFlags = .MenuBar | .NoDocking | .NoTitleBar | .NoResize | .NoMove | .NoBringToFrontOnFocus | .NoNavFocus;
+			ImGui.Begin("EditorMainDockspaceWindow", null, windowFlags);
+			ImGui.PopStyleVar(3);
+
+			ImGui.ID dockspaceId = ImGui.GetID("EditorMainDockspace");
+			ImGui.DockSpace(dockspaceId);
+			ImGui.End();
 		}
 
 		private void ShowMainMenuBar()
@@ -174,6 +203,10 @@ namespace SteelEditor
 					if (ImGui.MenuItem(window.Title.Ptr))
 						RegisterWindow(window);
 				}
+
+				EditorGUI.Line();
+				if (ImGui.MenuItem("Refresh"))
+					Editor.Refresh();
 
 				ImGui.EndMenu();
 			}

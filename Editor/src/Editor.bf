@@ -6,7 +6,7 @@ using SteelEngine.Window;
 using SteelEngine.ECS;
 using SteelEditor.Windows;
 using SteelEditor.Serialization;
-using imgui_beef;
+using ImGui;
 using JSON_Beef.Serialization;
 
 namespace SteelEditor
@@ -20,6 +20,8 @@ namespace SteelEditor
 		private bool _wantsSave = false;
 
 		public EditorProject CurrentProject = EditorProject.UntitledProject() ~ delete _;
+
+		private String _currentTheme = new .() ~ delete _;
 
 		public override void OnInit()
 		{
@@ -37,6 +39,8 @@ namespace SteelEditor
 			LoadCache();
 
 			UpdateTitle();
+
+			Log.Trace("Editor Resource Path: {}", SteelPath.EngineInstallationPath);
 		}
 
 		public override void OnCleanup()
@@ -53,6 +57,19 @@ namespace SteelEditor
 		{
 			GetInstance<Editor>()._wantsSave = true;
 			UpdateTitle();
+		}
+
+		public static void SetTheme(StringView themeName)
+		{
+			String fileName = scope .(themeName)..Append(".txt");
+			String _themePath = scope .();
+			SteelPath.GetEditorResourcePath(_themePath, "Themes", fileName);
+
+			String theme = new .();
+			defer delete theme;
+
+			File.ReadAllText(_themePath, theme);
+			LoadStyle(theme);
 		}
 
 		public static void GetEntityName(EntityId id, String buffer)
@@ -73,9 +90,15 @@ namespace SteelEditor
 				editor._entityNames[id].Set(name);
 		}
 
+		public static void Refresh()
+		{
+			for (var window in GetInstance<Editor>()._editorLayer.[Friend]_editorWindows)
+				window.OnShow();
+		}
+
 		public static void OpenProject(StringView path)
 		{
-			Log.Info("Opening project: {}", path);
+			GameConsole.Instance.Clear();
 
 			var filePath = scope String();
 			Path.InternalCombine(filePath, scope String(path), "SteelProj.json");
@@ -118,8 +141,8 @@ namespace SteelEditor
 			editor._cache.AddRecentProject(path);
 
 			InspectorWindow.SetCurrentEntity(null);
-
 			SteelPath.SetContentDirectory();
+			Refresh();
 		}
 
 		public static void CloseProject()
@@ -383,45 +406,29 @@ namespace SteelEditor
 			var configPath = scope String();
 			SteelPath.GetEditorUserPath(configPath, "Config.txt");
 			var serialized = new String();
+			defer delete serialized;
 			if (File.ReadAllText(configPath, serialized) case .Err)
-			{
-				delete serialized;
 				return;
-			}
 
-			var config = new Dictionary<String, Object>();
+			ParseConfig(serialized, var config);
+			LoadStyle(config);
 
-			for (var line in serialized.Split('\n'))
-			{
-				if (line.IsWhiteSpace)
-					continue;
+			var windows = (List<Object>) config["Windows"];
+			for (var window in windows)
+				RegisterWindow((String) window);
 
-				var lineEnumerator = line.GetEnumerator();
+			DeleteConfig!(config);
+		}
 
-				var key = new String();
-				for (var char in lineEnumerator)
-				{
-					if (char == '=')
-						break;
-					key.Append(char);
-				}
+		public static void LoadStyle(StringView str)
+		{
+			ParseConfig(str, var config);
+			LoadStyle(config);
+			DeleteConfig!(config);
+		}
 
-				key.Trim();
-
-				for (var char in lineEnumerator)
-					if (!char.IsWhiteSpace)
-						break;
-
-				if (key == "Colors")
-					NOP!();
-
-				var value = ParseValue(ref lineEnumerator);
-				if (value != null)
-					config[key] = value;
-				else
-					delete key;
-			}
-			
+		private static void LoadStyle(Dictionary<String, Object> config)
+		{
 			var style = ref ImGui.GetStyle();
 			style.Alpha = (float) config["Alpha"];
 			style.WindowPadding = GetVec2(config, "WindowPadding");
@@ -459,25 +466,6 @@ namespace SteelEditor
 			style.CircleSegmentMaxError = (float) config["CircleSegmentMaxError"];
 			GetColors(config, ref style.Colors);
 
-			var windows = (List<Object>) config["Windows"];
-			for (var window in windows)
-				RegisterWindow((String) window);
-
-			for (var value in config.Values)
-				DeleteObject(value);
-			DeleteDictionaryAndKeys!(config);
-			delete serialized;
-
-			void DeleteObject(Object object)
-			{
-				if (object.GetType() == typeof(List<Object>))
-				{
-					for (var item in (List<Object>) object)
-						DeleteObject(item);
-				}
-				delete object;
-			}
-
 			ImGui.Vec2 GetVec2(Dictionary<String, Object> config, String name)
 			{
 				var list = (List<Object>) config[name];
@@ -495,6 +483,42 @@ namespace SteelEditor
 					var vec = ImGui.Vec4((float) subList[0], (float) subList[1], (float) subList[2], (float) subList[3]);
 					colors[i] = vec;
 				}
+			}
+		}
+
+		private static void ParseConfig(StringView str, out Dictionary<String, Object> config)
+		{
+			config = new Dictionary<String, Object>();
+
+			for (var line in str.Split('\n'))
+			{
+				if (line.IsWhiteSpace)
+					continue;
+
+				var lineEnumerator = line.GetEnumerator();
+
+				var key = new String();
+				for (var char in lineEnumerator)
+				{
+					if (char == '=')
+						break;
+					key.Append(char);
+				}
+
+				key.Trim();
+
+				for (var char in lineEnumerator)
+					if (!char.IsWhiteSpace)
+						break;
+
+				if (key == "Colors")
+					NOP!();
+
+				var value = ParseValue(ref lineEnumerator);
+				if (value != null)
+					config[key] = value;
+				else
+					delete key;
 			}
 
 			Object ParseValue(ref Span<char8>.Enumerator enumerator)
@@ -521,6 +545,7 @@ namespace SteelEditor
 					if (value != null)
 						array.Add(value);
 				}
+
 				return array;
 			}
 
@@ -561,6 +586,23 @@ namespace SteelEditor
 					return str;
 				delete str;
 				return new box val;
+			}
+		}
+
+		private static mixin DeleteConfig(Dictionary<String, Object> config)
+		{
+			for (var value in config.Values)
+				DeleteObject(value);
+			DeleteDictionaryAndKeys!(config);
+
+			void DeleteObject(Object object)
+			{
+				if (object.GetType() == typeof(List<Object>))
+				{
+					for (var item in (List<Object>) object)
+						DeleteObject(item);
+				}
+				delete object;
 			}
 		}
 

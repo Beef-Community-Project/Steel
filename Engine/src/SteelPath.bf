@@ -8,6 +8,7 @@ namespace SteelEngine
 	{
 		public static String UserDirectory = new .() ~ delete _;
 		public static String ContentDirectory = new .() ~ delete _;
+		public static String EngineInstallationPath = new .() ~ delete _;
 
 		public static this()
 		{
@@ -18,20 +19,29 @@ namespace SteelEngine
 				Path.InternalCombine(UserDirectory, envVars["APPDATA"], "Steel");
 
 			DeleteDictionaryAndKeysAndItems!(envVars);
+
+#if DEBUG
+			Directory.GetCurrentDirectory(EngineInstallationPath);
+#else
+			var executablePath = scope String();
+			Environment.GetExecutableFilePath(executablePath);
+			Path.GetDirectoryPath(executablePath, EngineInstallationPath);
+#endif
 		}
 
 		public static void SetContentDirectory()
 		{
-			ContentDirectory.Clear();
+			/*ContentDirectory.Clear();
 
 #if DEBUG
 			Directory.GetCurrentDirectory(ContentDirectory);
 #else
 			var executablePath = scope String();
 			Environment.GetExecutableFilePath(executablePath);
-			if (Path.GetDirectoryPath(executablePath, ContentDirectory) case .Err)
-				Log.Fatal("Invalid executable path: '{}'", executablePath);
+			Path.GetDirectoryPath(executablePath, ContentDirectory);
 #endif
+
+			Log.Trace("Content Directory: {}", ContentDirectory);*/
 		}
 
 		public static void GetUserPath(String target, params String[] components)

@@ -1,5 +1,5 @@
 FileVersion = 1
-Dependencies = {corlib = "*", SteelEngine = "*", imgui-impl-opengl3 = "*", imgui-impl-glfw = "*", imgui-beef = "*", BeefExtensionsLib = "*", JSON_Beef = "*"}
+Dependencies = {corlib = "*", SteelEngine = "*", BeefExtensionsLib = "*", JSON_Beef = "*", ImGui = "*", ImGuiImplGlfw = "*", ImGuiImplOpenGL3 = "*"}
 
 [Project]
 Name = "SteelEditor"

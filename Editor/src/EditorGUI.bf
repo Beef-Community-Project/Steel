@@ -1,6 +1,6 @@
 using System;
 using System.Collections;
-using imgui_beef;
+using ImGui;
 using SteelEngine;
 using SteelEngine.Math;
 using SteelEngine.Input;
@@ -12,6 +12,7 @@ namespace SteelEditor
 		private static InputCallback _inputCallback = .(.None);
 		private static Dictionary<String, InputTextBuffer> _inputTextBuffers = new .() ~ DeleteDictionaryAndKeysAndItems!(_);
 
+		private static bool _isWindow = false;
 		private static bool _popItemWidth = false;
 		private static bool _popItemColor = false;
 		private static bool _popItemID = false;
@@ -24,13 +25,15 @@ namespace SteelEditor
 
 		public static bool BeginWindow(StringView name, ref bool isActive)
 		{
+			_isWindow = isActive;
 			return ImGui.Begin(name.Ptr, &isActive, .NoScrollbar);
 		}
 
 		public static void EndWindow()
 		{
+			_isWindow = false;
 			ImGui.End();
-			AddColumns();
+			RemoveColumns();
 		}
 
 		// Text
@@ -100,7 +103,7 @@ namespace SteelEditor
 			if (!value)
 			{
 				var color = ImGui.GetStyleColorVec4(.Button);
-				color.w = 0.2f;
+				color.w = 0.4f;
 				ImGui.PushStyleColor(.Button, color);
 			}
 
@@ -178,6 +181,34 @@ namespace SteelEditor
 			return _inputCallback;
 		}
 
+		public static void InputMultiline(StringView label, String buffer, int maxSize = 256, bool readOnly = false, Vector2 size = default)
+		{
+			bool hasLabel = Label(label);
+			if (!hasLabel)
+				EditorGUI.RemoveColumns();
+
+			var labelStr = scope String(label);
+
+			if (!_inputTextBuffers.ContainsKey(labelStr))
+				_inputTextBuffers[new String(label)] = new .();
+
+			var inputTextBuffer = _inputTextBuffers[labelStr];
+			if (inputTextBuffer.Size != (uint) maxSize)
+				inputTextBuffer.ReAlloc((uint) maxSize);
+
+			inputTextBuffer.Set(buffer);
+
+			ImGui.InputTextFlags flags = readOnly ? .ReadOnly : .None;
+			ImGui.InputTextMultiline(scope UniqueLabel(label, "InputMultiline"), inputTextBuffer.Ptr, (uint) maxSize, .(size.x, size.y), flags);
+
+			if (!hasLabel)
+				CheckItem(false);
+			else
+				CheckItem();
+
+			buffer.Set(inputTextBuffer.View());
+		}
+
 		private static int InputTextCallback(ImGui.InputTextCallbackData* data)
 		{
 			_inputCallback = .(data);
@@ -194,7 +225,7 @@ namespace SteelEditor
 		public static void Int(StringView label, ref int value)
 		{
 			Label(label);
-			ImGui.DragInt(scope UniqueLabel(label, "InputInt"), &value);
+			ImGui.DragInt(scope UniqueLabel(label, "InputInt"), (int32*) &value);
 			CheckItem();
 		}
 
@@ -257,9 +288,22 @@ namespace SteelEditor
 
 		    int tmp = (.) currentItem;
 
-		    let result = ImGui.Combo(scope UniqueLabel(label, "Combo"), &tmp, str);
+		    let result = ImGui.Combo(scope UniqueLabel(label, "Combo"), (int32*) &tmp, str);
 			CheckItem();
 		    currentItem = (.) tmp;
+		    return result;
+		}
+
+		public static bool Combo(StringView label, Span<String> items, ref int32 currentItem)
+		{
+		    Label(label);
+
+		    var str = scope String();
+		    for (var item in items)
+		        str.AppendF("{}\0", item);
+
+		    let result = ImGui.Combo(scope UniqueLabel(label, "Combo"), (int32*) &currentItem, str);
+			CheckItem();
 		    return result;
 		}
 
@@ -396,6 +440,9 @@ namespace SteelEditor
 
 		private static void CheckItem(bool nextColumn = true)
 		{
+			if (!_isWindow)
+				Log.Error("CheckItem() called without a window!");
+
 			if (_popItemWidth)
 			{
 				ImGui.PopItemWidth();

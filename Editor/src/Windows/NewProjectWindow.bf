@@ -69,13 +69,9 @@ namespace SteelEditor.Windows
 		{
 			Log.Info("Creating project '{}' at '{}'", _projectName, _projectPath);
 
-#if DEBUG
 			var samplePath = scope String();
 			SteelPath.GetEditorSamplePath(samplePath, "NewProject");
 			Directory.Copy(samplePath, _projectPath);
-#else
-			#error Not Implemented: Get Editor installation path
-#endif
 
 			ReplaceMacros(scope String(_projectPath));
 			Editor.OpenProject(_projectPath);

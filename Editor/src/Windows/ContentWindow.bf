@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 using SteelEngine;
-using imgui_beef;
+using ImGui;
 
 namespace SteelEditor.Windows
 {
@@ -9,24 +9,30 @@ namespace SteelEditor.Windows
 	{
 		public override StringView Title => "Content";
 
+		private String _localContentPath = new .() ~ delete _;
 		private String _dirPathBuffer = new .() ~ delete _;
 		private String _dirNameBuffer = new .() ~ delete _;
 
+		public override void OnShow()
+		{
+			_dirPathBuffer.Set(SteelPath.ContentDirectory);
+			_localContentPath.Set("Content / ");
+		}
+
 		public override void OnRender()
 		{
-			ImGui.BeginChild("##TreeView", .(ImGui.GetContentRegionAvail().x / 4f, ImGui.GetContentRegionAvail().y), true);
+			if (SteelPath.ContentDirectory.IsEmpty)
+				return;
+
+			_dirPathBuffer.Set(SteelPath.ContentDirectory);
+			EditorGUI.Text(_localContentPath);
+			ImGui.BeginChild("##ContentTreeView", .(ImGui.GetContentRegionAvail().x / 4f, ImGui.GetContentRegionAvail().y), true);
 			if (!SteelPath.ContentDirectory.IsEmpty)
-			{
-				_dirPathBuffer.Set(SteelPath.ContentDirectory);
 				ShowTree();
-			}
 			ImGui.EndChild();
 
 			EditorGUI.SameLine();
-
 			ImGui.BeginChild("##DirectoryView", .(ImGui.GetContentRegionAvail().x, ImGui.GetContentRegionAvail().y), true);
-
-
 			ImGui.EndChild();
 		}
 
@@ -36,7 +42,12 @@ namespace SteelEditor.Windows
 			{
 				var fileName = scope String();
 				file.GetFileName(fileName);
-				EditorGUI.Selectable(fileName);
+				if (EditorGUI.Selectable(fileName))
+				{
+					var filePath = scope String();
+					file.GetFilePath(filePath);
+					InspectorWindow.ViewFile(filePath);
+				}
 			}
 
 			for (var subDir in Directory.EnumerateDirectories(_dirPathBuffer))

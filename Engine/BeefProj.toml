@@ -1,5 +1,5 @@
 FileVersion = 1
-Dependencies = {corlib = "*", glfw-beef = "*", corlib = "*"}
+Dependencies = {corlib = "*", corlib = "*", glfw-beef = "*"}
 
 [Project]
 Name = "SteelEngine"
@@ -8,6 +8,7 @@ Name = "SteelEngine"
 PreprocessorMacros = ["STEEL_PLATFORM_WINDOWS", "DEBUG"]
 
 [Configs.Debug.Win64]
+CLibType = "DynamicDebug"
 PreprocessorMacros = ["STEEL_PLATFORM_WINDOWS", "DEBUG"]
 
 [Configs.Release.Win32]

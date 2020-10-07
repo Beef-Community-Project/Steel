@@ -4,7 +4,8 @@ using SteelEngine.ECS;
 using SteelEngine.ECS.Components;
 using SteelEngine;
 using System.Reflection;
-using imgui_beef;
+using ImGui;
+using System.IO;
 
 namespace SteelEditor.Windows
 {
@@ -16,13 +17,51 @@ namespace SteelEditor.Windows
 		private String _entityName = new .() ~ delete _;
 		private bool _showAddComponentPopup = false;
 
+		private bool _isFileView = false;
+		private String _filePath = null ~ if (_ != null) delete _;
+		private String _fileBuffer = null ~ if (_ != null) delete _;
+
 		public static void SetCurrentEntity(Entity entity)
 		{
-			Editor.GetWindow<InspectorWindow>()._entity = entity;
+			var inspector = Editor.GetWindow<InspectorWindow>();
+			inspector._entity = entity;
+			if (inspector._isFileView)
+				inspector.ClearFileView();
+		}
+
+		public static void ViewFile(StringView filePath)
+		{
+			var inspector = Editor.GetWindow<InspectorWindow>();
+			inspector._isFileView = true;
+
+			if (inspector._fileBuffer == null)
+				inspector._fileBuffer = new .();
+
+			if (!inspector._fileBuffer.IsEmpty)
+				inspector._fileBuffer.Clear();
+
+			if (inspector._filePath == null)
+				inspector._filePath = new .(filePath);
+			else
+				inspector._filePath.Set(filePath);
+
+			File.ReadAllText(filePath, inspector._fileBuffer);
+		}
+
+		private void ClearFileView()
+		{
+			_isFileView = false;
+			_fileBuffer.Clear();
 		}
 
 		public override void OnRender()
 		{
+			if (_isFileView)
+			{
+				ShowFileView();
+				return;
+			}
+
 			if (_entity == null)
 				return;
 
@@ -46,6 +85,7 @@ namespace SteelEditor.Windows
 			}	
 
 			EditorGUI.Line();
+			EditorGUI.AddColumns();
 
 			var componentsToRender = scope List<BaseComponent>();
 
@@ -88,6 +128,12 @@ namespace SteelEditor.Windows
 
 			if (_showAddComponentPopup)
 				ShowAddComponentPopup();
+		}
+
+		private void ShowFileView()
+		{
+			EditorGUI.Text(_filePath);
+			EditorGUI.InputMultiline("##FileView", _fileBuffer, 1024, true);
 		}
 
 		private void ShowAddComponentPopup()

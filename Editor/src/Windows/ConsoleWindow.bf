@@ -5,7 +5,7 @@ using SteelEngine;
 using SteelEngine.Math;
 using SteelEngine.Console;
 using SteelEditor;
-using imgui_beef;
+using ImGui;
 
 namespace SteelEditor.Windows
 {
@@ -36,14 +36,18 @@ namespace SteelEditor.Windows
 		public override void OnRender()
 		{
 			EditorGUI.ToggleButton("Errors", ref _showErrors);
+			EditorGUI.SameLine();
+			EditorGUI.ToggleButton("Warnings", ref _showWarnings);
+			EditorGUI.SameLine();
+			EditorGUI.ToggleButton("Info", ref _showInfo);
+			EditorGUI.SameLine();
+			EditorGUI.ToggleButton("Trace", ref _showTrace);
 
 			EditorGUI.AlignFromRight(CLEAR_BUTTON_OFFSET);
 			if (EditorGUI.Button("Clear"))
 				GameConsole.Instance.Clear();
 
-			EditorGUI.ToggleButton("Warnings", ref _showWarnings);
-			EditorGUI.ToggleButton("Info", ref _showInfo);
-			EditorGUI.ToggleButton("Trace", ref _showTrace);
+			EditorGUI.Line();
 
 			var footerSpacing = EditorGUI.GetHeightOfItems(1);
 			EditorGUI.BeginScrollingRegion("CommandScrollingRegion", -footerSpacing);
@@ -94,14 +98,15 @@ namespace SteelEditor.Windows
 			
 			EditorGUI.Line();
 			EditorGUI.FillWidth();
-			var inputCallback = EditorGUI.Input(scope String()..AppendF("##CommandInputBuffer_{}", _commandIndex), _commandBuffer, "", 256);
+			
+			var inputCallback = EditorGUI.Input("##CommandInputBuffer", _commandBuffer, "", 256);
 			if (inputCallback.OnEnter && !_commandBuffer.IsEmpty)
 			{
 				ImGui.SetKeyboardFocusHere(-1);
 				_scrollToBottom = true;
 
 				GameConsole.Instance.Enqueue(_commandBuffer);
-				ClearCommandBuffer();
+				_commandBuffer.Clear();
 			}
 			else if (inputCallback.OnHistory(let direction))
 			{
@@ -111,30 +116,13 @@ namespace SteelEditor.Windows
 
 		private void OnCommandHistory(VerticalDirection dir)
 		{
-			if (dir == .Up && _commandIndex > _commandStartIndex)
-				_commandIndex--;
-			else if (_commandIndex < _newCommandIndex)
-				_commandIndex++;
-
+			if (dir == .Up)
+				_commandBuffer.Set(GameConsole.Instance.History.HistoryUp());
+			else
+				_commandBuffer.Set(GameConsole.Instance.History.HistoryDown());
+			
 			ImGui.SetKeyboardFocusHere(-1);
-		}
-
-		public void ClearCommands()
-		{
-			_commandStartIndex = _newCommandIndex;
-			_commandIndex = _commandStartIndex;
-		}
-
-		public void ClearCommandBuffer()
-		{
-			_commandIndex = _newCommandIndex;
-			_newCommandIndex++;
-		}
-
-		private enum ConsoleType
-		{
-			Log,
-			Game
+			ImGui.SetActiveID(0, &ImGui.GetCurrentWindow());
 		}
 	}
 }

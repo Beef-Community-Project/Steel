@@ -1,6 +1,6 @@
 [submodule "ImGui"]
 	path = Libs/ImGui
-	url = https://github.com/qzole/imgui-beef
+	url = https://github.com/RogueMacro/imgui-beef
 [submodule "GLFW"]
 	path = Libs/GLFW
 	url = https://github.com/MineGame159/glfw-beef

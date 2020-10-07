@@ -20,6 +20,7 @@ namespace SteelEngine.Console
 				switch (int.Parse(lowercase))
 				{
 				case .Err:
+					didChange = false;
 					return false;
 				case .Ok(let val):
 					result = val != 0;

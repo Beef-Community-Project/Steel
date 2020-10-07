@@ -127,7 +127,7 @@ namespace SteelEngine
 				false,         // Undecorated
 				true,          // Resizable
 				false,         // VSync
-				false,         // Maximized
+				true,          // Maximized
 				false          // Invisible
 			);
 

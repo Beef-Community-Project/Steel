@@ -1,7 +1,7 @@
 using System;
 using System.Collections;
 using JSON_Beef.Attributes;
-using imgui_beef;
+using ImGui;
 
 namespace SteelEditor.Serialization
 {
