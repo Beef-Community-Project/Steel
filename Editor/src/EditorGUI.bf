@@ -12,7 +12,6 @@ namespace SteelEditor
 		private static InputCallback _inputCallback = .(.None);
 		private static Dictionary<String, InputTextBuffer> _inputTextBuffers = new .() ~ DeleteDictionaryAndKeysAndItems!(_);
 
-		private static bool _isWindow = false;
 		private static bool _popItemWidth = false;
 		private static bool _popItemColor = false;
 		private static bool _popItemID = false;
@@ -25,15 +24,13 @@ namespace SteelEditor
 
 		public static bool BeginWindow(StringView name, ref bool isActive)
 		{
-			_isWindow = isActive;
 			return ImGui.Begin(name.Ptr, &isActive, .NoScrollbar);
 		}
 
 		public static void EndWindow()
 		{
-			_isWindow = false;
-			ImGui.End();
 			RemoveColumns();
+			ImGui.End();
 		}
 
 		// Text
@@ -440,9 +437,6 @@ namespace SteelEditor
 
 		private static void CheckItem(bool nextColumn = true)
 		{
-			if (!_isWindow)
-				Log.Error("CheckItem() called without a window!");
-
 			if (_popItemWidth)
 			{
 				ImGui.PopItemWidth();
