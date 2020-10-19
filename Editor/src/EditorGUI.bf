@@ -18,6 +18,7 @@ namespace SteelEditor
 		private static bool _useColumns = true;
 		private static bool _visibleSeparator = false;
 
+		private static uint _popItemFlag = 0;
 		private static uint _collapsableHeaderCount = 0;
 
 		// Window
@@ -427,6 +428,12 @@ namespace SteelEditor
 			_visibleSeparator = false;
 		}
 
+		public static void DisableItem()
+		{
+			_popItemFlag++;
+			ImGui.PushItemFlag(.Disabled, true);
+		}
+
 		// Other
 
 		public static void ItemID(StringView id)
@@ -455,8 +462,29 @@ namespace SteelEditor
 				_popItemID = false;
 			}
 
+			if (_popItemFlag > 0)
+			{
+				ImGui.PopItemFlag();
+				_popItemFlag--;
+			}
+
 			if (nextColumn && _useColumns)
 				ImGui.NextColumn();
+		}
+
+		public static Vector2 GetWindowSize()
+		{
+			return .(ImGui.GetContentRegionAvail().x, ImGui.GetContentRegionAvail().y);
+		}
+
+		public static float GetWindowWidth()
+		{
+			return ImGui.GetContentRegionAvail().x;
+		}
+
+		public static float GetWindowHeight()
+		{
+			return ImGui.GetContentRegionAvail().y;
 		}
 
 		private class UniqueLabel

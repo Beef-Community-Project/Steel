@@ -132,8 +132,15 @@ namespace SteelEditor.Windows
 
 		private void ShowFileView()
 		{
-			EditorGUI.Text(_filePath);
-			EditorGUI.InputMultiline("##FileView", _fileBuffer, 1024, true);
+			EditorGUI.ItemWidth(EditorGUI.GetWindowWidth() - 23);
+			EditorGUI.Input("##FilePath", _filePath, "", 256, true);
+
+			EditorGUI.SameLine();
+			if (EditorGUI.Button("R"))
+				ViewFile(_filePath);
+
+			EditorGUI.DisableItem();
+			EditorGUI.InputMultiline("##FileView", _fileBuffer, 1024, true, EditorGUI.GetWindowSize());
 		}
 
 		private void ShowAddComponentPopup()
