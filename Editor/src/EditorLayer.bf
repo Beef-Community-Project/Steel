@@ -194,6 +194,9 @@ namespace SteelEditor
 		{
 			if (ImGui.BeginMenu("Edit"))
 			{
+				if (ImGui.MenuItem("Clear Cache"))
+					Editor.ClearCache();
+
 				ImGui.EndMenu();
 			}
 		}

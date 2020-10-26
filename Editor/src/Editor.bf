@@ -103,7 +103,7 @@ namespace SteelEditor
 
 			if (!File.Exists(path))
 			{
-				Log.Error("Could not open project ({}): Not a Steel project", path);
+				Log.Error("Could not open project ({}): File deleted", path);
 				return;
 			}
 
@@ -138,7 +138,7 @@ namespace SteelEditor
 			editor.CurrentProject.Path = dirPath;
 			UpdateTitle();
 
-			editor._cache.AddRecentProject(path);
+			editor._cache.AddRecentProject(dirPath);
 
 			InspectorWindow.SetCurrentEntity(null);
 			SteelPath.SetContentDirectory();
@@ -212,7 +212,7 @@ namespace SteelEditor
 			Log.Trace("Saving cache");
 
 			var editor = GetInstance<Editor>();
-			editor._cache.Update(editor);
+			editor._cache.Update();
 			editor._cache.MakeSerializable();
 
 			var result = JSONSerializer.Serialize<String>(editor._cache);
@@ -253,8 +253,7 @@ namespace SteelEditor
 
 			var editor = GetInstance<Editor>();
 
-			if (editor._cache != null)
-				delete editor._cache;
+			delete editor._cache;
 			editor._cache = new .();
 
 			if (JSONDeserializer.Deserialize<EditorCache>(json, editor._cache) case .Err(let err))
@@ -263,6 +262,13 @@ namespace SteelEditor
 				delete editor._cache;
 				editor._cache = new .(true);
 			}
+		}
+
+		public static void ClearCache()
+		{
+			var editor = GetInstance<Editor>();
+			delete editor._cache;
+			editor._cache = new .(true);
 		}
 
 		public static T GetWindow<T>() where T : EditorWindow

@@ -9,16 +9,16 @@ namespace SteelEditor.Serialization
 	public class EditorCache
 	{
 		[IgnoreSerialize]
-		private int MaxRecentProjects = 5;
+		private const int MAX_RECENT_PROJECTS = 5;
 
 		public List<String> RecentProjects = null;
 		
 		[IgnoreSerialize] // Temporary until structs can be serialized
 		public ImGui.Style Style;
 
-		public this(bool initDefault = false)
+		public this(bool init = false)
 		{
-			if (!initDefault)
+			if (!init)
 				return;
 
 			RecentProjects = new .();
@@ -30,14 +30,14 @@ namespace SteelEditor.Serialization
 				DeleteContainerAndItems!(RecentProjects);
 		}
 
-		public void Update(Editor editor)
+		public void Update()
 		{
 			Style = ImGui.GetStyle();
 		}
 
 		public void AddRecentProject(StringView path)
 		{
-			if (RecentProjects.Count >= MaxRecentProjects)
+			if (RecentProjects.Count >= MAX_RECENT_PROJECTS)
 				RecentProjects.PopFront();
 
 			var pathString = new String(path);
