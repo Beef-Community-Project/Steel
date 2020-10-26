@@ -249,6 +249,9 @@ namespace SteelEditor
 				return;
 			}
 
+			if (json.IsEmpty)
+				return;
+
 			var editor = GetInstance<Editor>();
 
 			if (editor._cache != null)
