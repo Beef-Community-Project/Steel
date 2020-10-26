@@ -239,20 +239,6 @@ namespace SteelEngine
 			return (T) Instance;
 		}
 
-		struct PosColorVertex
-		{
-			public this(float x, float y, float z, uint32 abgr)
-			{
-				this.x = x;
-				this.y = y;
-				this.z = z;
-				this.abgr = abgr;
-			}
-
-			float x, y, z;
-			uint32 abgr;
-		}
-
 		private void Draw()
 		{
 			for (let system in _systems)

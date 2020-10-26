@@ -178,7 +178,7 @@ namespace SteelEditor
 
 			var editor = GetInstance<Editor>();
 
-			editor.CurrentProject.Entities.Clear();
+			DeleteAndClearItems!(editor.CurrentProject.Entities);
 			for (var entity in Entity.EntityStore.Values)
 			{
 				var entityName = scope String();

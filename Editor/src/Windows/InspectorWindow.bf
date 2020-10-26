@@ -298,7 +298,7 @@ namespace SteelEditor.Windows
 				variant = field.GetValue(component).Get();
 				field.SetValue(component, (uint32) EditorGUI.Int(fieldName, variant.Get<uint32>()));
 			case typeof(uint64):
-				variant = field.GetValueReference(component).Get();
+				variant = field.GetValue(component).Get();
 				field.SetValue(component, (uint64) EditorGUI.Int(fieldName, (int) variant.Get<uint64>()));
 			default:
 				return;

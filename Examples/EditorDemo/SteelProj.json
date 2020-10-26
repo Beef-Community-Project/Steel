@@ -1,7 +1,1 @@
-{
-  "Name": "EditorDemo",
-  "Entities": [
-    { "Name": "Entity1", "IsEnabled": true },
-    { "Name": "Entity2", "IsEnabled": false }
-  ]
-}
+{"Name":"EditorDemo","Entities":[{"Name":"Entity1","IsEnabled":true},{"Name":"Entity2","IsEnabled":false}]}
