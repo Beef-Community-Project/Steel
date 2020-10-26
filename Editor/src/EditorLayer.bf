@@ -48,7 +48,7 @@ namespace SteelEditor
 			ImGuiImplGlfw.InitForOpenGL(_window.GetHandle, true);
 			ImGuiImplOpenGL3.Init();
 
-			Editor.Registerindow<NewProjectWindow>();
+			Editor.RegisterWindow<NewProjectWindow>();
 		}
 
 		public override void OnDetach()

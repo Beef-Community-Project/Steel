@@ -28,12 +28,13 @@ namespace SteelEditor
 			_editorLayer = new .(Window);
 			PushOverlay(_editorLayer);
 
-			Registerindow<TestWindow>();
-			Registerindow<StyleWindow>();
-			Registerindow<ConsoleWindow>();
-			Registerindow<InspectorWindow>();
-			Registerindow<HierarchyWindow>();
-			Registerindow<ContentWindow>();
+			RegisterWindow<TestWindow>();
+			RegisterWindow<StyleWindow>();
+			RegisterWindow<ConsoleWindow>();
+			RegisterWindow<InspectorWindow>();
+			RegisterWindow<HierarchyWindow>();
+			RegisterWindow<ContentWindow>();
+			RegisterWindow<PropertiesWindow>();
 
 			LoadConfig();
 			LoadCache();
@@ -282,7 +283,7 @@ namespace SteelEditor
 			GetInstance<Editor>()._editorLayer.RegisterWindow(window);
 		}
 
-		public static void Registerindow<T>() where T : EditorWindow
+		public static void RegisterWindow<T>() where T : EditorWindow
 		{
 			GetInstance<Editor>()._editorLayer.RegisterWindow<T>();
 		}

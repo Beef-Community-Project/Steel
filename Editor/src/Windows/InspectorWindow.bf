@@ -124,10 +124,9 @@ namespace SteelEditor.Windows
 			EditorGUI.NewLine();
 			EditorGUI.AlignMiddle(130);
 			if (EditorGUI.Button("Add Component", .(130, 20)))
-				_showAddComponentPopup = true;
+				ImGui.OpenPopup("Add Component");
 
-			if (_showAddComponentPopup)
-				ShowAddComponentPopup();
+			ShowAddComponentPopup();
 		}
 
 		private void ShowFileView()
@@ -147,7 +146,7 @@ namespace SteelEditor.Windows
 		{
 			Type componentType = null;
 
-			if (EditorGUI.BeginWindow("Add Component", ref _showAddComponentPopup))
+			if (ImGui.BeginPopup("Add Component"))
 			{
 				for (var type in Type.Types)
 				{
@@ -158,7 +157,7 @@ namespace SteelEditor.Windows
 						if (typeName == "BaseComponent" || typeName == "BehaviourComponent")
 							continue;
 
-						if (EditorGUI.Selectable(typeName))
+						if (ImGui.MenuItem(typeName))
 						{
 							componentType = type;
 							_showAddComponentPopup = false;
@@ -167,7 +166,7 @@ namespace SteelEditor.Windows
 					}
 				}
 
-				EditorGUI.EndWindow();
+				ImGui.EndPopup();
 			}
 
 			if (componentType != null)
