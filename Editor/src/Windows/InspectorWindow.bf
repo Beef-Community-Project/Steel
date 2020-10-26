@@ -214,8 +214,6 @@ namespace SteelEditor.Windows
 
 		private void RenderFields(List<FieldInfo> fields, Object object)
 		{
-			ImGui.Columns(2);
-
 			for (var field in fields)
 			{
 				if (field.FieldType.IsInteger)
@@ -265,8 +263,6 @@ namespace SteelEditor.Windows
 
 		private void RenderField<T>(function T(StringView label, T value) callback, FieldInfo field, Object component)
 		{
-			if (field.GetName() == "Scale")
-				NOP!();
 			var variant = field.GetValue(component).Get();
 			field.SetValue(component, callback(field.GetName(), variant.Get<T>()));
 			variant.Dispose();

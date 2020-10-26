@@ -49,7 +49,7 @@ namespace SteelEditor
 			return isSelected;
 		}
 
-		public static bool Label(StringView label, bool newLine = false)
+		public static bool Label(StringView label, bool sameLine = false)
 		{
 			if (label.StartsWith("##"))
 				return false;
@@ -61,7 +61,7 @@ namespace SteelEditor
 			Text(label);
 			CheckItem(false);
 
-			if (!newLine)
+			if (sameLine)
 				SameLine();
 			FillWidth();
 
