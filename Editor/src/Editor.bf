@@ -101,10 +101,7 @@ namespace SteelEditor
 		{
 			GameConsole.Instance.Clear();
 
-			var filePath = scope String();
-			Path.InternalCombine(filePath, scope String(path), "SteelProj.json");
-
-			if (!File.Exists(filePath))
+			if (!File.Exists(path))
 			{
 				Log.Error("Could not open project ({}): Not a Steel project", path);
 				return;
@@ -113,7 +110,7 @@ namespace SteelEditor
 			var json = new String();
 			defer delete json;
 
-			if (File.ReadAllText(filePath, json) case .Err(let err))
+			if (File.ReadAllText(path, json) case .Err(let err))
 			{
 				Log.Error("Could not open project ({}): {}", path, err);
 				return;
@@ -136,7 +133,9 @@ namespace SteelEditor
 			for (var serializableEntity in editor.CurrentProject.Entities)
 				serializableEntity.MakeEntity();
 
-			editor.CurrentProject.Path = new .(path);
+			var dirPath = new String();
+			Path.GetDirectoryPath(path, dirPath);
+			editor.CurrentProject.Path = dirPath;
 			UpdateTitle();
 
 			editor._cache.AddRecentProject(path);

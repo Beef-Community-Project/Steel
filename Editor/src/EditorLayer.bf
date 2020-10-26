@@ -232,11 +232,13 @@ namespace SteelEditor
 
 		private void OpenProject()
 		{
-			var dialog = scope FolderBrowserDialog();
+			var dialog = scope OpenFileDialog();
+			dialog.SetFilter("Steel Project (SteelProj.json)|SteelProj.json");
+
 			if (dialog.ShowDialog() case .Ok(let val))
 			{
 				if (val == .OK)
-					Editor.OpenProject(dialog.SelectedPath);
+					Editor.OpenProject(dialog.FileNames[0]);
 			}
 			else
 			{
