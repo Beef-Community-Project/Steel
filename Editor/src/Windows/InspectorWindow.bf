@@ -220,7 +220,7 @@ namespace SteelEditor.Windows
 			{
 				if (field.FieldType.IsInteger)
 				{
-					//RenderInt(field, component);
+					RenderInt(field, object);
 					continue;
 				}
 
@@ -234,6 +234,14 @@ namespace SteelEditor.Windows
 					break;
 				case typeof(bool):
 					RenderField<bool>(=> EditorGUI.Checkbox, field, object);
+					break;
+				case typeof(float):
+					RenderField<float>(=> EditorGUI.Float, field, object);
+					break;
+				case typeof(String):
+					var variant = field.GetValue(object).Get();
+					EditorGUI.Input(field.GetName(), variant.Get<String>());
+					variant.Dispose();
 					break;
 				case typeof(Entity):
 					var variant = field.GetValue(object).Get();
@@ -257,12 +265,14 @@ namespace SteelEditor.Windows
 
 		private void RenderField<T>(function T(StringView label, T value) callback, FieldInfo field, Object component)
 		{
+			if (field.GetName() == "Scale")
+				NOP!();
 			var variant = field.GetValue(component).Get();
 			field.SetValue(component, callback(field.GetName(), variant.Get<T>()));
 			variant.Dispose();
 		}
 
-		private void RenderInt(FieldInfo field, BaseComponent component)
+		private void RenderInt(FieldInfo field, Object component)
 		{
 			var fieldName = field.GetName();
 			Variant variant = ?;
