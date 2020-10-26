@@ -24,6 +24,7 @@ namespace SteelEditor
 			Entities = new .();
 		}
 
+		[NoDiscard]
 		public static Self UntitledProject()
 		{
 			return new .("Untitled", "");

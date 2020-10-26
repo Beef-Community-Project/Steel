@@ -18,8 +18,8 @@ namespace SteelEditor.Windows
 		private bool _showAddComponentPopup = false;
 
 		private bool _isFileView = false;
-		private String _filePath = null ~ if (_ != null) delete _;
-		private String _fileBuffer = null ~ if (_ != null) delete _;
+		private String _filePath = null ~ delete _;
+		private String _fileBuffer = null ~ delete _;
 
 		public static void SetCurrentEntity(Entity entity)
 		{
