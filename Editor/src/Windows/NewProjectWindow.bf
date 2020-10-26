@@ -73,8 +73,9 @@ namespace SteelEditor.Windows
 			SteelPath.GetEditorSamplePath(samplePath, "NewProject");
 			Directory.Copy(samplePath, _projectPath);
 
-			ReplaceMacros(scope String(_projectPath));
-			Editor.OpenProject(_projectPath);
+			var projectPath = scope String();
+			Path.InternalCombine(projectPath, _projectPath, "SteelProj.json");
+			Editor.OpenProject(projectPath);
 		}
 
 		private void ReplaceMacros(String path)

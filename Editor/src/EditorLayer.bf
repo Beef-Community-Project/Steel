@@ -186,7 +186,11 @@ namespace SteelEditor
 			for (var projectPath in cache.RecentProjects)
 			{
 				if (ImGui.MenuItem(projectPath))
-					Editor.OpenProject(projectPath);
+				{
+					var projectFilePath = scope String();
+					Path.InternalCombine(projectFilePath, projectPath, "SteelProj.json");
+					Editor.OpenProject(projectFilePath);
+				}
 			}
 		}
 
