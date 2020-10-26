@@ -1,6 +1,7 @@
 using System;
 using SteelEngine;
 using SteelEngine.ECS;
+using ImGui;
 
 namespace SteelEditor.Windows
 {
@@ -26,6 +27,38 @@ namespace SteelEditor.Windows
 					InspectorWindow.SetCurrentEntity(entity);
 					_currentEntity = entity;
 				}
+
+				if (ImGui.BeginPopupContextItem())
+				{
+					ShowEntityPopupMenu();
+					ImGui.EndPopup();
+				}
+			}
+
+			if (ImGui.BeginPopupContextWindow())
+			{
+				ShowHierarchyPopupMenu();
+				ImGui.EndPopup();
+			}
+		}
+
+		private void ShowHierarchyPopupMenu()
+		{
+			if (ImGui.BeginMenu("Create"))
+			{
+				if (ImGui.MenuItem("Empty Entity"))
+					Application.Instance.CreateEntity();
+
+				ImGui.EndMenu();
+			}
+		}
+
+		private void ShowEntityPopupMenu()
+		{
+			if (ImGui.MenuItem("Delete"))
+			{
+				InspectorWindow.SetCurrentEntity(null);
+				delete _currentEntity;
 			}
 		}
 	}
