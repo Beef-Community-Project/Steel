@@ -58,7 +58,7 @@ namespace SteelEngine
 			{
 				if (_layers[i].[Friend]_debugName == debugName)
 				{
-					_layers.GetAndRemove(_layers[i]).Get().OnDetach();
+					RemoveAt(i);
 					_layerInsert--;
 					break;
 				}
@@ -71,7 +71,7 @@ namespace SteelEngine
 			{
 				if (_layers[i].[Friend]_debugName == debugName)
 				{
-					_layers.GetAndRemove(_layers[i]).Get().OnDetach();
+					RemoveAt(i);
 					break;
 				}
 			}
@@ -83,7 +83,8 @@ namespace SteelEngine
 			{
 				if (typeof(T) == _layers[i].GetType())
 				{
-					_layers.GetAndRemove(_layers[i]).Get().OnDetach();
+					RemoveAt(i);
+					_layerInsert--;
 					return;
 				}
 			}
@@ -95,7 +96,7 @@ namespace SteelEngine
 			{
 				if (typeof(T) == _layers[i].GetType())
 				{
-					_layers.GetAndRemove(_layers[i]).Get().OnDetach();
+					RemoveAt(i);
 					break;
 				}
 			}
@@ -107,7 +108,8 @@ namespace SteelEngine
 			{
 				if (_layers[i] == layer)
 				{
-					_layers.GetAndRemove(_layers[i]).Get().OnDetach();
+					RemoveAt(i);
+					_layerInsert--;
 					return;
 				}
 			}
@@ -119,10 +121,17 @@ namespace SteelEngine
 			{
 				if (_layers[i] == layer)
 				{
-					_layers.GetAndRemove(_layers[i]).Get().OnDetach();
+					RemoveAt(i);
 					return;
 				}
 			}
+		}
+
+		private void RemoveAt(int index)
+		{
+			var layer = _layers.GetAndRemove(_layers[index]).Get();
+			layer.OnDetach();
+			delete layer;
 		}
 
 		public List<Layer>.Enumerator GetEnumerator()
