@@ -101,8 +101,12 @@ namespace SteelEditor
 			if (io.ConfigFlags.HasFlag(.ViewportsEnable))
 			{
 				GlfwWindow* glfwContextBackup = Glfw.GetCurrentContext();
+#if BF_PLATFORM_WINDOWS
 				ImGui.UpdatePlatformWindows();
 				ImGui.RenderPlatformWindowsDefault();
+#else
+	#error Only windows is supported for ImGui
+#endif
 				Glfw.MakeContextCurrent(glfwContextBackup);
 			}
 		}

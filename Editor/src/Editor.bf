@@ -512,9 +512,6 @@ namespace SteelEditor
 					if (!char.IsWhiteSpace)
 						break;
 
-				if (key == "Colors")
-					NOP!();
-
 				var value = ParseValue(ref lineEnumerator);
 				if (value != null)
 					config[key] = value;
