@@ -12,7 +12,7 @@ namespace SteelEditor.Serialization
 		private int MaxRecentProjects = 5;
 
 		public List<String> RecentProjects = null;
-		public List<String> Windows = null;
+		
 		[IgnoreSerialize] // Temporary until structs can be serialized
 		public ImGui.Style Style;
 
@@ -22,28 +22,16 @@ namespace SteelEditor.Serialization
 				return;
 
 			RecentProjects = new .();
-			Windows = new .();
 		}
 
 		public ~this()
 		{
 			if (RecentProjects != null)
 				DeleteContainerAndItems!(RecentProjects);
-
-			if (Windows != null)
-				DeleteContainerAndItems!(Windows);
 		}
 
 		public void Update(Editor editor)
 		{
-			DeleteAndClearItems!(Windows);
-
-			for (var window in editor._editorLayer.[Friend]_editorWindows)
-			{
-				if (window.IsActive)
-					Windows.Add(new String(window.Title));
-			}
-
 			Style = ImGui.GetStyle();
 		}
 
@@ -63,9 +51,6 @@ namespace SteelEditor.Serialization
 		{
 			if (RecentProjects == null)
 				RecentProjects = new .();
-
-			if (Windows == null)
-				Windows = new .();
 
 			for (var path in RecentProjects)
 				path.MakeSerializable();
