@@ -13,7 +13,7 @@ namespace SteelEditor
 {
 	public class Editor : Application
 	{
-		private EditorLayer _editorLayer ~ delete _;
+		private EditorLayer _editorLayer;
 
 		private Dictionary<EntityId, String> _entityNames = new .();
 		private EditorCache _cache = new .(true) ~ delete _;
@@ -52,6 +52,8 @@ namespace SteelEditor
 			for (var value in _entityNames.Values)
 				delete value;
 			delete _entityNames;
+
+			delete _editorLayer;
 		}
 
 		public static void InvalidateSave()

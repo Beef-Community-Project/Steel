@@ -10,14 +10,7 @@ namespace SteelEngine
 
 		public ~this()
 		{
-			for (var layer in _layers)
-			{
-				layer.[Friend]OnDetach();
-
-				if (layer.DeleteOnDetach)
-					delete layer;
-			}
-
+			Clear();
 			delete _layers;
 		}
 
@@ -115,7 +108,14 @@ namespace SteelEngine
 		{
 			var layer = _layers.GetAndRemove(_layers[index]).Get();
 			layer.[Friend]OnDetach();
-			delete layer;
+			if (layer.DeleteOnDetach)
+				delete layer;
+		}
+
+		public void Clear()
+		{
+			for (int i = _layers.Count - 1; i >= 0; i--)
+				RemoveAt(i);
 		}
 
 		public List<Layer>.Enumerator GetEnumerator()

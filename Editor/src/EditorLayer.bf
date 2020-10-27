@@ -13,7 +13,7 @@ namespace SteelEditor
 	public class EditorLayer : Layer
 	{
 		private Window _window;
-		private List<EditorWindow> _editorWindows = new .();
+		private List<EditorWindow> _editorWindows = new .() ~ DeleteContainerAndItems!(_);
 
 		private String _imguiIniPath = new .() ~ delete _;
 		private ImGui.Style _originalStyle;
@@ -21,6 +21,13 @@ namespace SteelEditor
 		public this(Window window) : base("EditorLayer")
 		{
 			_window = window;
+		}
+
+		public ~this()
+		{
+			ImGuiImplOpenGL3.Shutdown();
+			ImGuiImplGlfw.Shutdown();
+			ImGui.DestroyContext();
 		}
 
 		protected override void OnAttach()
@@ -54,16 +61,7 @@ namespace SteelEditor
 		protected override void OnDetach()
 		{
 			for (var editorWindow in _editorWindows)
-			{
 				CloseWindow(editorWindow);
-				delete editorWindow;
-			}
-
-			delete _editorWindows;
-
-			ImGuiImplOpenGL3.Shutdown();
-			ImGuiImplGlfw.Shutdown();
-			ImGui.DestroyContext();
 		}
 
 		protected override void OnUpdate()

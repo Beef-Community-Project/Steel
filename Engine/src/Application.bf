@@ -162,6 +162,8 @@ namespace SteelEngine
 				Draw();
 			}
 
+			_layerStack.Clear();
+
 			OnCleanup();
 		}
 
