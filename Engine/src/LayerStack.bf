@@ -5,51 +5,60 @@ namespace SteelEngine
 {
 	public class LayerStack : IEnumerable<Layer>
 	{
-		public bool AutoDeleteLayers;
-
 		private List<Layer> _layers = new .();
 		private int _layerInsert = 0;
 
-		public this(bool autoDeleteLayers = true)
-		{
-			AutoDeleteLayers = autoDeleteLayers;
-		}
-
 		public ~this()
 		{
-			if (AutoDeleteLayers)
+			for (var layer in _layers)
 			{
-				for (var layer in _layers)
-					layer.OnDetach();
+				layer.[Friend]OnDetach();
 
-				ClearAndDeleteItems(_layers);
+				if (layer.DeleteOnDetach)
+					delete layer;
 			}
 
 			delete _layers;
 		}
 
+		public void PushLayer<T>() where T : Layer
+		{
+			var layer = new T();
+			layer.DeleteOnDetach = true;
+			_layers.Insert(_layerInsert++, layer);
+			layer.[Friend]OnAttach();
+		}
+
+		public void PushOverlay<T>() where T : Layer
+		{
+			var overlay = new T();
+			overlay.DeleteOnDetach = true;
+			_layers.Add(overlay);
+			overlay.[Friend]OnAttach();
+		}
+
 		public void PushLayer(Layer layer)
 		{
 			_layers.Insert(_layerInsert++, layer);
-			layer.OnAttach();
+			layer.[Friend]OnAttach();
 		}
 
 		public void PushOverlay(Layer overlay)
 		{
 			_layers.Add(overlay);
-			overlay.OnAttach();
+			overlay.[Friend]OnAttach();
 		}
 
 		public void PopLayer()
 		{
 			_layerInsert--;
-			_layers.GetAndRemove(_layers[_layerInsert]).Get().OnDetach();
+			_layers.GetAndRemove(_layers[_layerInsert]).Get().[Friend]OnDetach();
 		}
 
 		public void PopOverlay()
 		{
 			if (_layers.Count > _layerInsert)
-				_layers.PopBack().OnDetach();
+				_layers.PopBack().[Friend]OnDetach();
 		}
 
 		public void RemoveLayer(StringView debugName)
@@ -101,36 +110,11 @@ namespace SteelEngine
 				}
 			}
 		}
-		
-		public void RemoveLayer(Layer layer)
-		{
-			for (int i = 0; i < _layerInsert; i++)
-			{
-				if (_layers[i] == layer)
-				{
-					RemoveAt(i);
-					_layerInsert--;
-					return;
-				}
-			}
-		}
-
-		public void RemoveOverlay(Layer layer)
-		{
-			for (int i = _layerInsert; i < _layers.Count; i++)
-			{
-				if (_layers[i] == layer)
-				{
-					RemoveAt(i);
-					return;
-				}
-			}
-		}
 
 		private void RemoveAt(int index)
 		{
 			var layer = _layers.GetAndRemove(_layers[index]).Get();
-			layer.OnDetach();
+			layer.[Friend]OnDetach();
 			delete layer;
 		}
 

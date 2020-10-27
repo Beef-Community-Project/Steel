@@ -15,9 +15,9 @@ namespace System
 
 	extension String
 	{
-		public void MakeSerializable()
+		public void MakePath()
 		{
-			Replace("\\", "\\\\");
+			Replace("\\", "/");
 		}
 	}
 }

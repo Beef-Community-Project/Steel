@@ -23,10 +23,10 @@ namespace SteelEditor
 			_window = window;
 		}
 
-		public override void OnAttach()
+		protected override void OnAttach()
 		{
 			if (!ImGui.CHECKVERSION())
-				Log.Fatal("There is a problem with ImGui");
+				Log.Fatal("ImGui versions do not match");
 			
 			ImGui.CreateContext();
 			
@@ -51,7 +51,7 @@ namespace SteelEditor
 			Editor.RegisterWindow<NewProjectWindow>();
 		}
 
-		public override void OnDetach()
+		protected override void OnDetach()
 		{
 			for (var editorWindow in _editorWindows)
 			{
@@ -66,7 +66,7 @@ namespace SteelEditor
 			ImGui.DestroyContext();
 		}
 
-		public override void OnUpdate()
+		protected override void OnUpdate()
 		{
 			var io = ref ImGui.GetIO();
 			var app = Editor.Instance;

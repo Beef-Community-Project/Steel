@@ -154,7 +154,7 @@ namespace SteelEngine
 			while (_isRunning)
 			{
 				for (var layer in _layerStack)
-					layer.OnUpdate();
+					layer.[Friend]OnUpdate();
 
 				Window.Update();
 
@@ -179,7 +179,7 @@ namespace SteelEngine
 
 			for (var layer in _layerStack)
 			{
-				layer.OnEvent(event);
+				layer.[Friend]OnEvent(event);
 				if (event.IsHandled)
 					return;
 			}
@@ -189,7 +189,7 @@ namespace SteelEngine
 
 		private void OnGlfwError(Glfw.Error error)
 		{
-			Log.Error("(GLFW) {}", error);
+			Log.Error("[GLFW] {}", error);
 		}
 
 		private bool OnWindowClose(WindowCloseEvent event)
@@ -217,16 +217,26 @@ namespace SteelEngine
 			}
 
 			for (var layer in _layerStack)
-				layer.OnUpdate();
+				layer.[Friend]OnUpdate();
 
 			_gameConsole.Update();
 
 			OnUpdate();
 		}
 
+		public void PushLayer<T>() where T : Layer
+		{
+			_layerStack.PushLayer<T>();
+		}
+
 		public void PushLayer(Layer layer)
 		{
 			_layerStack.PushLayer(layer);
+		}
+
+		public void PushOverlay<T>() where T : Layer
+		{
+			_layerStack.PushOverlay<T>();
 		}
 
 		public void PushOverlay(Layer layer)

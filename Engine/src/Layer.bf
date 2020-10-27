@@ -5,6 +5,8 @@ namespace SteelEngine
 {
 	public class Layer
 	{
+		public bool DeleteOnDetach = false;
+
 		protected String _debugName ~ delete _;
 
 		public this(StringView name = "Layer")
@@ -12,9 +14,9 @@ namespace SteelEngine
 			_debugName = new String(name);
 		}
 
-		public virtual void OnAttach() {};
-		public virtual void OnDetach() {};
-		public virtual void OnUpdate() {};
-		public virtual void OnEvent(Event event) {};
+		protected virtual void OnAttach() {};
+		protected virtual void OnDetach() {};
+		protected virtual void OnUpdate() {};
+		protected virtual void OnEvent(Event event) {};
 	}
 }

@@ -53,7 +53,7 @@ namespace SteelEditor.Serialization
 				RecentProjects = new .();
 
 			for (var path in RecentProjects)
-				path.MakeSerializable();
+				path.MakePath();
 		}
 	}
 }

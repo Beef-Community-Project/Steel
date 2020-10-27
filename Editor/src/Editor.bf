@@ -13,7 +13,7 @@ namespace SteelEditor
 {
 	public class Editor : Application
 	{
-		private EditorLayer _editorLayer;
+		private EditorLayer _editorLayer ~ delete _;
 
 		private Dictionary<EntityId, String> _entityNames = new .();
 		private EditorCache _cache = new .(true) ~ delete _;
@@ -26,7 +26,7 @@ namespace SteelEditor
 		public override void OnInit()
 		{
 			_editorLayer = new .(Window);
-			PushOverlay(_editorLayer);
+			PushLayer(_editorLayer);
 
 			RegisterWindow<TestWindow>();
 			RegisterWindow<StyleWindow>();
