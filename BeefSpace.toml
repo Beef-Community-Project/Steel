@@ -1,6 +1,6 @@
 FileVersion = 1
-Projects = {SteelEngine = {Path = "Engine"}, SteelEditor = {Path = "Editor"}, BeefExtensionsLib = {Path = "Libs/Beef-Extensions-Lib"}, JSON_Beef = {Path = "Libs/JSON_Beef/lib"}, ImGuiImplGlfw = {Path = "Libs/ImGui/ImGuiImplGlfw"}, ImGuiImplOpenGL3 = {Path = "Libs/ImGui/ImGuiImplOpenGL3"}, glfw-beef = {Path = "Libs/GLFW"}, ImGui = {Path = "Libs/ImGui/ImGui"}}
-Locked = ["BeefExtensionsLib", "JSON_Beef", "ImGuiImplGlfw", "ImGuiImplOpenGL3", "glfw-beef", "ImGui"]
+Projects = {SteelEngine = {Path = "Engine"}, SteelEditor = {Path = "Editor"}, BeefExtensionsLib = {Path = "Libs/Beef-Extensions-Lib"}, JSON_Beef = {Path = "Libs/JSON_Beef/lib"}, ImGuiImplGlfw = {Path = "Libs/ImGui/ImGuiImplGlfw"}, ImGuiImplOpenGL3 = {Path = "Libs/ImGui/ImGuiImplOpenGL3"}, glfw-beef = {Path = "Libs/GLFW"}, ImGui = {Path = "Libs/ImGui/ImGui"}, MsgPackBf = {Path = "Libs/MsgPack/lib"}}
+Locked = ["BeefExtensionsLib", "JSON_Beef", "ImGuiImplGlfw", "ImGuiImplOpenGL3", "glfw-beef", "ImGui", "MsgPackBf"]
 
 [Workspace]
 StartupProject = "SteelEditor"

@@ -13,3 +13,6 @@
 [submodule "ImGui"]
 	path = Libs/ImGui
 	url = https://github.com/RogueMacro/imgui-beef
+[submodule "MsgPack"]
+	path = Libs/MsgPack
+	url = https://github.com/NicEastvillage/MsgPackBf
