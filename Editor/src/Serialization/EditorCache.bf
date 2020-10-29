@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using JSON_Beef.Attributes;
 using ImGui;
+using SteelEngine;
 
 namespace SteelEditor.Serialization
 {
@@ -12,6 +13,7 @@ namespace SteelEditor.Serialization
 		private const int MAX_RECENT_PROJECTS = 5;
 
 		public List<String> RecentProjects = null;
+		public List<String> Windows = null;
 		
 		[IgnoreSerialize] // Temporary until structs can be serialized
 		public ImGui.Style Style;
@@ -22,21 +24,36 @@ namespace SteelEditor.Serialization
 				return;
 
 			RecentProjects = new .();
+			Windows = new .();
 		}
 
 		public ~this()
 		{
 			if (RecentProjects != null)
 				DeleteContainerAndItems!(RecentProjects);
+
+			if (Windows != null)
+				DeleteContainerAndItems!(Windows);
 		}
 
 		public void Update()
 		{
+			DeleteAndClearItems!(Windows);
+
+			for (var window in Application.GetInstance<Editor>().[Friend]_editorLayer.[Friend]_editorWindows)
+			{
+				if (window.IsActive)
+					Windows.Add(new String(window.Title));
+			}
+
 			Style = ImGui.GetStyle();
 		}
 
 		public void AddRecentProject(StringView path)
 		{
+
+			if (Windows == null)
+				Windows = new .();
 			if (RecentProjects.Count >= MAX_RECENT_PROJECTS)
 				RecentProjects.PopFront();
 

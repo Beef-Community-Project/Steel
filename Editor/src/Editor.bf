@@ -8,6 +8,7 @@ using SteelEditor.Windows;
 using SteelEditor.Serialization;
 using ImGui;
 using JSON_Beef.Serialization;
+using MsgPackBf;
 
 namespace SteelEditor
 {
@@ -283,14 +284,14 @@ namespace SteelEditor
 			GetInstance<Editor>()._editorLayer.ShowWindow<T>();
 		}
 
-		public static void RegisterWindow(StringView windowName)
+		public static void ShowWindow(StringView windowName)
 		{
-			GetInstance<Editor>()._editorLayer.RegisterWindow(windowName);
+			GetInstance<Editor>()._editorLayer.ShowWindow(windowName);
 		}
 
-		public static void RegisterWindow(EditorWindow window)
+		public static void ShowWindow(EditorWindow window)
 		{
-			GetInstance<Editor>()._editorLayer.RegisterWindow(window);
+			GetInstance<Editor>()._editorLayer.ShowWindow(window);
 		}
 
 		public static void RegisterWindow<T>() where T : EditorWindow
@@ -320,7 +321,23 @@ namespace SteelEditor
 
 			var style = ImGui.GetStyle();
 
-			AddSetting(config, "Alpha", style.Alpha);
+			uint8[] buffer = scope uint8[32];
+			MsgPacker packer = scope MsgPacker(buffer);
+
+			packer.WriteMapHeader(2);
+			packer.Write("compact");
+			packer.Write(true);
+			packer.Write("schema");
+			packer.Write(0);
+
+			Console.WriteLine("BUFFER: ");
+			for (uint8 bin in buffer)
+				Console.WriteLine(bin);
+
+			delete config;
+			delete openWindows;
+
+			/*AddSetting(config, "Alpha", style.Alpha);
 			AddSetting(config, "WindowPadding", style.WindowPadding);
 			AddSetting(config, "WindowRounding", style.WindowRounding);
 			AddSetting(config, "WindowBorderSize", style.WindowBorderSize);
@@ -409,7 +426,7 @@ namespace SteelEditor
 				str.[Friend]Realloc(str.AllocSize);
 				str.Append("]");
 				parent[name] = str;
-			}
+			}*/
 		}
 
 		public static void LoadConfig()
@@ -426,7 +443,7 @@ namespace SteelEditor
 
 			var windows = (List<Object>) config["Windows"];
 			for (var window in windows)
-				RegisterWindow((String) window);
+				ShowWindow((String) window);
 
 			DeleteConfig!(config);
 		}

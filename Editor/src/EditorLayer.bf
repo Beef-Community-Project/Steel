@@ -210,7 +210,7 @@ namespace SteelEditor
 				for (var window in _editorWindows)
 				{
 					if (ImGui.MenuItem(window.Title.Ptr))
-						RegisterWindow(window);
+						ShowWindow(window);
 				}
 
 				EditorGUI.Line();
@@ -257,7 +257,7 @@ namespace SteelEditor
 			{
 				if (window.GetType() == typeof(T))
 				{
-					RegisterWindow(window);
+					ShowWindow(window);
 					return;
 				}
 			}
@@ -270,19 +270,19 @@ namespace SteelEditor
 			Log.Error("{} does not exist in application", typeName);
 		}
 
-		public void RegisterWindow(StringView windowName)
+		public void ShowWindow(StringView windowName)
 		{
 			for (var window in _editorWindows)
 			{
 				if (window.Title == windowName)
 				{
-					RegisterWindow(window);
+					ShowWindow(window);
 					break;
 				}
 			}
 		}
 
-		public void RegisterWindow(EditorWindow window)
+		public void ShowWindow(EditorWindow window)
 		{
 			if (!window.IsActive)
 			{
