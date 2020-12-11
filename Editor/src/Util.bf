@@ -14,10 +14,7 @@ namespace SteelEngine
 			return .(self.r, self.g, self.b, self.a);
 		}
 	}
-}
 
-namespace SteelEngine
-{
 	extension Vector4<T>
 	{
 		public static implicit operator ImGui.Vec4(Self self) where float : operator explicit T

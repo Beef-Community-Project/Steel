@@ -125,7 +125,7 @@ namespace SteelEditor
 
 		public static void Checkbox(StringView label, ref bool value)
 		{
-			Label(label);
+			Label(label, true);
 			ImGui.Checkbox(scope UniqueLabel(label, "Checkbox"), &value);
 			CheckItem();
 		}

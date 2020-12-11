@@ -4,7 +4,7 @@ using System.IO;
 using SteelEngine;
 using SteelEngine.Window;
 using SteelEngine.ECS;
-using SteelEditor.Windows;
+using SteelEditor.UI;
 using SteelEditor.Serialization;
 using ImGui;
 using JSON_Beef.Serialization;
@@ -24,6 +24,34 @@ namespace SteelEditor
 
 		private String _currentTheme = new .() ~ delete _;
 
+		[Serializable]
+		class TestData
+		{
+			int Number = 42;
+			String Textt = "Lorum Ipsum";
+			TestDataProp Prop = new TestDataProp() ~ delete _;
+			TestDataPropStruct Prop2 = TestDataPropStruct();
+		}
+
+		[Serializable]
+		class TestDataProp
+		{
+			int Prop1 = 1;
+			int Prop2 = 2;
+		}
+
+		[AttributeUsage(.Class | .Struct, ReflectUser=.AllMembers | .DynamicBoxing)]
+		struct SerializableAttribute : Attribute
+		{
+		}
+
+		[Serializable]
+		struct TestDataPropStruct
+		{
+			int Prop3 = 3;
+			int Prop4 = 4;
+		}
+
 		public override void OnInit()
 		{
 			_editorLayer = new .(Window);
@@ -42,7 +70,95 @@ namespace SteelEditor
 
 			UpdateTitle();
 
-			Log.Trace("Editor Resource Path: {}", SteelPath.EngineInstallationPath);
+			Log.Trace("Editor Resource Path: {}", SteelPath.EditorInstallationPath);
+
+			//Extensions.Load();
+
+			/*var buffer = new uint8[256];
+			var packer = scope MsgPacker(buffer);
+			int totalSize = 0;
+			packer.WriteMapHeader(1);
+			totalSize = GetAndPrintSize("Map header");
+			packer.Write("Prop12");
+			totalSize = GetAndPrintSize("Key");
+			int i = 5423543267;
+			packer.Write(i);
+			
+			totalSize = GetAndPrintSize("int");
+
+			Log.Info("Total size: {}", totalSize);
+			PrintBuffer();
+			delete buffer;
+
+			void PrintBuffer()
+			{
+				for (int i = 0; i < GetBufferSize(); i++)
+					Console.Write($"{buffer[i]} ");
+				Console.WriteLine();
+			}
+
+			int GetAndPrintSize(StringView sizeOfWhat)
+			{
+				var size = GetBufferSize();
+				Log.Info($"{sizeOfWhat} size: {size - totalSize}");
+				return size;
+			}
+
+			int GetBufferSize()
+			{
+				int i = 0;
+				for (i = buffer.Count - 1; i > 0; i--)
+				{
+					if (buffer[i] != 0)
+						break;
+				}
+
+				return i + 1;
+			}*/
+
+			TestOutputSizeEstimate();
+			var testBuffer = new:Serializer.AllocateBuffer! uint[2];
+
+			var data = scope TestData();
+			var serialized = new uint8[Serializer.GetOutputSize(data)];
+			Serializer.Serialize(data, serialized);
+			Console.Write("Serialized: [");
+			for (uint8 bin in serialized)
+				Console.Write("{}, ", bin);
+			Console.WriteLine("]");
+			var unpacker = scope MsgUnpacker(serialized);
+			//var propCount = unpacker.ReadMapHeader().Get();
+			//Log.Info("Properties Count: {}", propCount);
+			
+			delete serialized;
+		}
+
+		private void TestOutputSizeEstimate()
+		{
+			Log.Info("-------------------------------");
+			Log.Info("- Output size estimation test -");
+			Log.Info("-------------------------------");
+
+			var data = scope TestData();
+			int outputSize = Serializer.GetOutputSize(data);
+			Log.Info("Estimated output size: {}", outputSize);
+
+			var buffer = new uint8[256];
+			Serializer.Serialize(data, buffer);
+
+			var actualSize = Serializer.[Friend]GetBufferSize(buffer);
+
+			Log.Info("Actual size: {}", actualSize);
+
+			Console.WriteLine();
+			Console.Write("Buffer: [");
+			for (uint8 bin in buffer)
+				Console.Write("{}, ", bin);
+			Console.WriteLine("]");
+			
+
+			Log.Info("-------------------------------");
+			delete buffer;
 		}
 
 		public override void OnCleanup()
@@ -321,6 +437,8 @@ namespace SteelEditor
 
 			var style = ImGui.GetStyle();
 
+			
+
 			uint8[] buffer = scope uint8[32];
 			MsgPacker packer = scope MsgPacker(buffer);
 
@@ -330,9 +448,9 @@ namespace SteelEditor
 			packer.Write("schema");
 			packer.Write(0);
 
-			Console.WriteLine("BUFFER: ");
+			Console.Write("BUFFER: ");
 			for (uint8 bin in buffer)
-				Console.WriteLine(bin);
+				Console.Write("{} ", bin);
 
 			delete config;
 			delete openWindows;

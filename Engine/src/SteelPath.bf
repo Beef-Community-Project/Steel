@@ -8,7 +8,6 @@ namespace SteelEngine
 	{
 		public static String UserDirectory = new .() ~ delete _;
 		public static String ContentDirectory = new .() ~ delete _;
-		public static String EngineInstallationPath = new .() ~ delete _;
 
 		public static this()
 		{
@@ -19,14 +18,6 @@ namespace SteelEngine
 				Path.InternalCombine(UserDirectory, envVars["APPDATA"], "Steel");
 
 			DeleteDictionaryAndKeysAndItems!(envVars);
-
-#if DEBUG
-			Directory.GetCurrentDirectory(EngineInstallationPath);
-#else
-			var executablePath = scope String();
-			Environment.GetExecutableFilePath(executablePath);
-			Path.GetDirectoryPath(executablePath, EngineInstallationPath);
-#endif
 		}
 
 		public static void SetContentDirectory()
@@ -60,5 +51,9 @@ namespace SteelEngine
 			components.CopyTo(newComponents, 0, 1, components.Count);
 			Path.InternalCombine(target, params newComponents);
 		}
+
+		[CLink]
+		private static extern void LoadLibraryA(char8* lpLibFileName);
+		public static void LoadDLL(StringView path) => LoadLibraryA(path.Ptr);
 	}
 }
