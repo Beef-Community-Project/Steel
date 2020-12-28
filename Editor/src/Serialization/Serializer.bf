@@ -9,9 +9,39 @@ namespace SteelEditor.Serialization
 {
 	public static class Serializer
 	{
-		public static uint8[] AllocateBuffer(Object data)
+		public static Result<void, SerializationError> Deserialize(String source, Object object) => Deserialize(scope StringStream(source, .Reference), object);
+		public static Result<void, SerializationError> DeserializeFile(StringView path, Object object) => Deserialize(scope FileStream()..Open(path, .Read), object);
+
+		public static Result<void, SerializationError> Deserialize(Stream source, Object object)
 		{
-			return new uint8[GetOutputSize(data)];
+			var buffer = new uint8[source.Length];
+			for (int i = 0; i < source.Length; i++)
+				buffer[i] = source.Read<uint8>();
+			return Deserialize(buffer, object);
+		}
+
+		public static Result<void, SerializationError> Deserialize(Span<uint8> source, Object object)
+		{
+			var unpacker = scope MsgUnpacker(source);
+			return DeserializeObject(unpacker, object);
+		}
+
+		private static Result<void, SerializationError> DeserializeObject(MsgUnpacker unpacker, Object object)
+		{
+			var mapCount = unpacker.ReadMapHeader().Get();
+			if (object.GetType().FieldCount != (int32) mapCount)
+				return .Err(.TypeMismatch);
+
+			for (var field in object.GetType().GetFields())
+			{
+				if (field.GetType().IsPrimitive)
+				{
+					if (unpacker.ReadMapHeader() case .Ok)
+						return .Err(.TypeMismatch);
+				}	
+			}
+
+			return .Ok;
 		}
 
 		public static int GetOutputSize(Object object)
@@ -33,18 +63,19 @@ namespace SteelEditor.Serialization
 
 			if (object is String)
 			{
-				Log.Trace("Detected String: {}", ((String) object).Length + 1);
 				return ((String) object).Length + 1;
 			}
 			else if (object is StringView)
 			{
-				Log.Trace("Detected String: {}", ((StringView) object).Length + 1);
 				return ((StringView) object).Length + 1;
 			}
 
 			var fields = object.GetType().GetFields();
 			for (var field in fields)
 			{
+				if (field.GetCustomAttribute<NoSerializeAttribute>() case .Ok)
+					continue;
+
 				var valueResult = field.GetValue(object);
 
 				if (valueResult case .Err)
@@ -52,35 +83,25 @@ namespace SteelEditor.Serialization
 
 				var valueVariant = valueResult.Get();
 
-				var prevNameSize = size;
 				var name = field.GetName();
 				size += name.Length + 1;
-				Log.Trace("Detected field name: {}", size - prevNameSize);
 				if (field.FieldType.IsPrimitive)
 				{
-					var prevSize = size;
 					size += GetPrimitiveSize(valueVariant);
-					Log.Trace("Detected primitive: {}", size - prevSize);
 				}
 				else if (field.FieldType.IsStruct)
 				{
-					var prevSize = size;
 					var fieldObject = valueVariant.GetBoxed().Get();
 					size += GetOutputSize(fieldObject);
 					delete fieldObject;
-					Log.Trace("Length increased after struct: {}", size - prevSize);
 				}
 				else
 				{
-					var prevSize = size;
 					size += GetOutputSize(valueVariant.Get<Object>());
-					Log.Trace("Length increased after object: {}", size - prevSize);
 				}
 
 				valueVariant.Dispose();
 			}
-
-			Log.Trace("Detected object: {}", size);
 
 			return size;
 		}
@@ -172,13 +193,16 @@ namespace SteelEditor.Serialization
 			}
 		}
 
-		public static Result<void, SerializationError> Serialize(Object object, Stream output)
-		{
-			return .Err(.NotImplemented);
-		}
-
 		public static Result<void, SerializationError> Serialize(Object object, uint8[] output)
 		{
+			if (GetOutputSize(object) > output.Count)
+				return .Err(.BufferSizeError);
+			return WriteObject(scope MsgPacker(output), object);
+		}
+
+		public static Result<void, SerializationError> Serialize(Object object, out uint8[] output)
+		{
+			output = new uint8[GetOutputSize(object)];
 			return WriteObject(scope MsgPacker(output), object);
 		}
 
@@ -193,28 +217,31 @@ namespace SteelEditor.Serialization
 
 			if (object is String)
 			{
-				Log.Trace("Write string: {}", (object as String).Length + 1);
 				packer.Write((String) object);
 				return .Ok;
 			}
 			else if (object is StringView)
 			{
-				Log.Trace("Write string: {}", ((StringView)object).Length + 1);
 				packer.Write((StringView) object);
 				return .Ok;
 			}
 
 			// User defined class
 			var fields = object.GetType().GetFields();
-			var prevSize = GetBufferSize(packer.[Friend]mBuffer);
 			uint32 fieldCount = 0;
 			for (var field in fields)
-				fieldCount++;
+			{
+				if (field.GetCustomAttribute<NoSerializeAttribute>() case .Err)
+					fieldCount++;
+			}
 			packer.WriteMapHeader(fieldCount);
 
 			fields.Reset();
 			for (var field in fields)
 			{
+				if (field.GetCustomAttribute<NoSerializeAttribute>() case .Ok)
+					continue;
+
 				var valueResult = field.GetValue(object);
 
 				if (valueResult case .Err)
@@ -222,41 +249,28 @@ namespace SteelEditor.Serialization
 
 				var valueVariant = valueResult.Get();
 
-				var prevNameSize = GetBufferSize(packer.[Friend]mBuffer);
+				if (!valueVariant.HasValue)
+					return .Err(.VariantError);
+
 				var name = field.GetName();
 				packer.Write(name);
-				var newNameSize = GetBufferSize(packer.[Friend]mBuffer);
-				Log.Trace("Write field name: {}", newNameSize - prevNameSize);
 				if (field.FieldType.IsPrimitive)
 				{
-					var _prevSize = GetBufferSize(packer.[Friend]mBuffer);
 					WritePrimitive(packer, valueVariant);
-					var newSize = GetBufferSize(packer.[Friend]mBuffer);
-					Log.Trace("Write primitive: {}", newSize - _prevSize);
 				}
 				else if (field.FieldType.IsStruct)
 				{
-					var _prevSize = GetBufferSize(packer.[Friend]mBuffer);
 					var fieldObject = valueVariant.GetBoxed().Get();
 					WriteObject(packer, fieldObject);
 					delete fieldObject;
-					var newSize = GetBufferSize(packer.[Friend]mBuffer);
-					Log.Trace("Length increased after write struct: {}", newSize - _prevSize);
 				}
 				else
 				{
-					var _prevSize = GetBufferSize(packer.[Friend]mBuffer);
 					WriteObject(packer, valueVariant.Get<Object>());
-					var newSize = GetBufferSize(packer.[Friend]mBuffer);
-					Log.Trace("Length increased after write object: {}", newSize - _prevSize);
 				}
 
 				valueVariant.Dispose();
 			}
-
-			var newSize = GetBufferSize(packer.[Friend]mBuffer);
-			var gap = newSize - prevSize;
-			Log.Trace("Write object: {}",  gap);
 
 			return .Ok;
 		}
