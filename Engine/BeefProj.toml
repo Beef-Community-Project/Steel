@@ -1,5 +1,30 @@
 FileVersion = 1
-Dependencies = {corlib = "*", glfw-beef = "*", corlib = "*"}
+Dependencies = {corlib = "*", corlib = "*", glfw-beef = "*"}
 
 [Project]
 Name = "SteelEngine"
+
+[Configs.Debug.Win32]
+PreprocessorMacros = ["STEEL_PLATFORM_WINDOWS", "DEBUG"]
+
+[Configs.Debug.Win64]
+CLibType = "DynamicDebug"
+PreprocessorMacros = ["STEEL_PLATFORM_WINDOWS", "DEBUG"]
+
+[Configs.Release.Win32]
+PreprocessorMacros = ["STEEL_PLATFORM_WINDOWS", "RELEASE"]
+
+[Configs.Release.Win64]
+PreprocessorMacros = ["STEEL_PLATFORM_WINDOWS", "RELEASE"]
+
+[Configs.Paranoid.Win32]
+PreprocessorMacros = ["STEEL_PLATFORM_WINDOWS", "PARANOID"]
+
+[Configs.Paranoid.Win64]
+PreprocessorMacros = ["STEEL_PLATFORM_WINDOWS", "PARANOID"]
+
+[Configs.Test.Win32]
+PreprocessorMacros = ["STEEL_PLATFORM_WINDOWS"]
+
+[Configs.Test.Win64]
+PreprocessorMacros = ["STEEL_PLATFORM_WINDOWS"]

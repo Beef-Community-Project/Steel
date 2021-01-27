@@ -1,10 +1,18 @@
-[submodule "Libs/ImGui"]
-	path = Libs/ImGui
-	url = https://github.com/Beef-Community-Project/imgui-beef
-	branch = docking
-[submodule "Libs/GLFW"]
+[submodule "GLFW"]
 	path = Libs/GLFW
-	url = https://github.com/MineGame159/glfw-beef.git
+	url = https://github.com/MineGame159/glfw-beef
 [submodule "BGFX"]
 	path = Libs/BGFX
 	url = https://github.com/ExoKomodo/Bgfx-bf
+[submodule "JSON_Beef"]
+	path = Libs/JSON_Beef
+	url = https://github.com/Jonathan-Racaud/JSON_Beef
+[submodule "Beef-Extensions-Lib"]
+	path = Libs/Beef-Extensions-Lib
+	url = https://github.com/Jonathan-Racaud/Beef-Extensions-Lib
+[submodule "ImGui"]
+	path = Libs/ImGui
+	url = https://github.com/RogueMacro/imgui-beef
+[submodule "MsgPack"]
+	path = Libs/MsgPack
+	url = https://github.com/NicEastvillage/MsgPackBf

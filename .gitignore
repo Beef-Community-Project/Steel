@@ -1,5 +1,7 @@
 # Directories
 build/
+recovery/
 
 # Files
 BeefSpace_User.toml
+Editor/imgui.ini

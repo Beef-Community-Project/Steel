@@ -1,42 +1,88 @@
 using System;
+using System.Collections;
+using System.IO;
 using SteelEngine.Window;
 using SteelEngine.Events;
 using SteelEngine.Input;
 using SteelEngine.ECS;
 using SteelEngine.ECS.Systems;
 using SteelEngine.ECS.Components;
-using System.Collections;
+using SteelEngine.Console;
+using glfw_beef;
 
 namespace SteelEngine
 {
 	public abstract class Application : IDisposable
 	{
+		public static Application Instance;
+
 		private bool _isRunning = false;
 
-		private Window _window ~ delete _;
+		public Window Window { get; protected set; }
 		private Window.EventCallback _eventCallback = new => OnEvent ~ delete _;
 
-		private LayerStack _layerStack = new .() ~ delete _;
+		private LayerStack _layerStack = new .();
 
-		private List<BaseSystem> _systems ~ delete _;
+		private Glfw.ErrorCallback _errorCallback = new => OnGlfwError;
+
+		private List<BaseSystem> _systems ~ DeleteContainerAndItems!(_);
+
 		private Dictionary<ComponentId, BaseComponent> _components ~ delete _;
 		private List<BaseComponent> _componentsToDelete ~ delete _;
 		private List<EntityId> _entitiesToRemoveFromStore ~ delete _;
 		private GLFWInputManager _inputManager = new GLFWInputManager() ~ delete _;
 
+		private GameConsole _gameConsole = new GameConsole() ~ delete _;
+
 		public this()
 		{
-			OnInit();
-		}
+			Instance = this;
 
-		public ~this()
-		{
-			Dispose();
-		}
+			Log.AddCallback(new (str, level) =>
+			{
+				ConsoleColor color;
 
-		public void Dispose()
-		{
-			OnCleanup();
+				switch (level)
+				{
+				case .Trace:
+					color = .Gray;
+					break;
+				case .Info:
+					color = .White;
+					break;
+				case .Warning:
+					color = .Yellow;
+					break;
+				case .Error, .Fatal:
+					color = .Red;
+					break;
+				}
+
+				var origin = Console.ForegroundColor;
+				Console.ForegroundColor = color;
+				Console.WriteLine(str);
+				Console.ForegroundColor = origin;
+			});
+
+			Log.Trace("Initializing application");
+
+			_gameConsole.Initialize(scope String[]("config.cfg"));
+
+			_components = new Dictionary<ComponentId, BaseComponent>();
+			_componentsToDelete = new List<BaseComponent>();
+			_entitiesToRemoveFromStore = new List<EntityId>();
+
+			_systems = new List<BaseSystem>();
+			// The order of these systems will greatly affect the behavior of the engine.
+			// As functionality is added, the order of these updates should become more established.
+			// Maybe some kind of priority filtering could be added to make sure that systems execute in a defined order established at runtime.
+			CreateSystem<Physics2dSystem>();
+			CreateSystem<Physics3dSystem>();
+			CreateSystem<Render3DSystem>();
+			CreateSystem<RenderSpriteSystem>();
+			CreateSystem<RenderTextSystem>();
+			CreateSystem<SoundSystem>();
+			CreateSystem<BehaviorSystem>();
 		}
 
 		/// <summary>
@@ -45,7 +91,7 @@ namespace SteelEngine
 		/// </summary>
 		public BaseSystem CreateSystem<T>() where T : BaseSystem
 		{
-			let system = new T(this);
+			let system = new T();
 			_systems.Add(system);
 
 			for (let item in Entity.EntityStore)
@@ -67,18 +113,33 @@ namespace SteelEngine
 
 		public Entity CreateEntity()
 		{
-			return new Entity(this);
+			return new Entity();
 		}
 
 		public void Run()
 		{
 			_isRunning = true;
 
-			var windowConfig = WindowConfig(1080, 720, "SteelEngine");
-			_window = new Window(windowConfig, _eventCallback);
+			var windowConfig = WindowConfig(
+				1080,          // Width
+				720,           // Height
+				"SteelEngine", // Title
+				false,         // Undecorated
+				true,          // Resizable
+				false,         // VSync
+				true,          // Maximized
+				false          // Invisible
+			);
+
+			Window = new Window(windowConfig, _eventCallback);
+
+			OnInit();
+
+			Glfw.SetErrorCallback(_errorCallback, true);
 
 			Time.[Friend]Initialize();
 			_inputManager.Initialize();
+
 			for (let system in _systems)
 			{
 				switch (system.[Friend]Initialize())
@@ -93,74 +154,44 @@ namespace SteelEngine
 			while (_isRunning)
 			{
 				for (var layer in _layerStack)
-					layer.OnUpdate();
+					layer.[Friend]OnUpdate();
 
-				_window.Update();
+				Window.Update();
 
 				Update();
 				Draw();
 			}
+
+			_layerStack.Clear();
+
+			OnCleanup();
 		}
 
-		// Gets called right before the window is created
-		public virtual void OnInit()
-		{
-			Log.AddHandle(Console.Out);
-
-			_components = new Dictionary<ComponentId, BaseComponent>();
-			_componentsToDelete = new List<BaseComponent>();
-			_entitiesToRemoveFromStore = new List<EntityId>();
-
-			_systems = new List<BaseSystem>();
-			// The order of these systems will greatly affect the behavior of the engine.
-			// As functionality is added, the order of these updates should become more established.
-			// Maybe some kind of priority filtering could be added to make sure that systems execute in a defined order established at runtime.
-			CreateSystem<Physics2dSystem>();
-			CreateSystem<Physics3dSystem>();
-			CreateSystem<Render3DSystem>();
-			CreateSystem<RenderSpriteSystem>();
-			CreateSystem<RenderTextSystem>();
-			CreateSystem<SoundSystem>();
-			CreateSystem<BehaviorSystem>();
-		}
+		// Gets called right after the window is created
+		public virtual void OnInit() {}
 
 		// Gets called when the window is destroyed
-		public virtual void OnCleanup()
-		{
-			_window.Destroy();
-
-			// Order of deletion is important. Deleting from lowest to highest abstraction is safe.
-			for (let item in _components)
-			{
-				delete item.value;
-			}
-			_components.Clear();
-			for (let item in Entity.EntityStore)
-			{
-				delete item.value;
-			}
-			Entity.EntityStore.Clear();
-			for (let system in _systems)
-			{
-				delete system;
-			}
-			_systems.Clear();
-		}
+		public virtual void OnCleanup() {}
 
 		// Gets called when an event occurs in the window
 		public void OnEvent(Event event)
 		{
-			_inputManager.OnEvent(event);
-
 			var dispatcher = scope EventDispatcher(event);
 			dispatcher.Dispatch<WindowCloseEvent>(scope => OnWindowClose);
 
 			for (var layer in _layerStack)
 			{
-				layer.OnEvent(event);
+				layer.[Friend]OnEvent(event);
 				if (event.IsHandled)
-					break;
+					return;
 			}
+
+			_inputManager.OnEvent(event);
+		}
+
+		private void OnGlfwError(Glfw.Error error)
+		{
+			Log.Error("[GLFW] {}", error);
 		}
 
 		private bool OnWindowClose(WindowCloseEvent event)
@@ -187,7 +218,37 @@ namespace SteelEngine
 				system.[Friend]PostUpdate();
 			}
 
+			for (var layer in _layerStack)
+				layer.[Friend]OnUpdate();
+
+			_gameConsole.Update();
+
 			OnUpdate();
+		}
+
+		public void PushLayer<T>() where T : Layer
+		{
+			_layerStack.PushLayer<T>();
+		}
+
+		public void PushLayer(Layer layer)
+		{
+			_layerStack.PushLayer(layer);
+		}
+
+		public void PushOverlay<T>() where T : Layer
+		{
+			_layerStack.PushOverlay<T>();
+		}
+
+		public void PushOverlay(Layer layer)
+		{
+			_layerStack.PushOverlay(layer);
+		}
+
+		public static T GetInstance<T>() where T : Application
+		{
+			return (T) Instance;
 		}
 
 		private void Draw()
@@ -197,7 +258,7 @@ namespace SteelEngine
 				system.[Friend]Draw();
 			}
 
-			_window.Update();
+			Window.Update();
 		}
 
 
@@ -298,6 +359,33 @@ namespace SteelEngine
 			}
 			_entitiesToRemoveFromStore.Add(entity.Id);
 			return true;
+		}
+
+		public static void Exit(int exitCode = 0)
+		{
+			Environment.Exit(exitCode);
+		}
+
+		public ~this()
+		{
+			Dispose();
+		}
+
+		public virtual void Dispose()
+		{
+			delete _layerStack;
+
+			Window.Destroy();
+			delete Window;
+
+			// Order of deletion is important. Deleting from lowest to highest abstraction is safe.
+			for (let item in _components)
+				delete item.value;
+
+			_components.Clear();
+
+			for (let item in Entity.EntityStore)
+				delete item.value;
 		}
 	}
 }

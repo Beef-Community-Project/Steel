@@ -7,11 +7,11 @@ namespace SteelEngine.ECS
 {
 	typealias EntityId = uint64;
 
+	[Reflect, AlwaysInclude(AssumeInstantiated=true, IncludeAllMethods=true)]
 	public class Entity
 	{
-		public this(Application app)
+		public this()
 		{
-			App = app;
 			Id = GetNextId();
 			IsEnabled = true;
 
@@ -22,8 +22,6 @@ namespace SteelEngine.ECS
 		{
 			EntityStore = new Dictionary<EntityId, Entity>();
 		}
-
-		public Application App { get; private set; }
 
 		public static Dictionary<EntityId, Entity> EntityStore { get; private set; };
 
@@ -50,7 +48,7 @@ namespace SteelEngine.ECS
 				return false;
 			}
 			component.Parent = this;
-			return App.[Friend]AddComponent(component);
+			return Application.Instance.[Friend]AddComponent(component);
 		}
 
 		/// <summary>
@@ -65,7 +63,7 @@ namespace SteelEngine.ECS
 			{
 				return false;
 			}
-			return App.[Friend]RemoveComponent(component);
+			return Application.Instance.[Friend]RemoveComponent(component);
 		}
 
 		private static EntityId _nextId = 0;
@@ -77,7 +75,7 @@ namespace SteelEngine.ECS
 
 		public ~this()
 		{
-			App.[Friend]RemoveEntity(this);
+			Application.Instance.[Friend]RemoveEntity(this);
 		}
 
 		static ~this()

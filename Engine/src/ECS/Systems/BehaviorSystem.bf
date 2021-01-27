@@ -6,11 +6,9 @@ namespace SteelEngine.ECS.Systems
 {
 	public class BehaviorSystem : BaseSystem
 	{
-		public this(Application app) : base(app) {}
-
 		protected override void RegisterComponentTypes()
 		{
-			_registeredTypes = new Type[]{ typeof(BehaviorComponent) };
+			_registeredTypes = new Type[]( typeof(BehaviorComponent) );
 		}
 
 		protected override void Update(EntityId entityId, List<BaseComponent> components, float delta)
@@ -27,7 +25,7 @@ namespace SteelEngine.ECS.Systems
 				{
 					continue;
 				}
-				(component as BehaviorComponent).[Friend]Update(delta);
+				((BehaviorComponent) component).[Friend]Update(delta);
 			}
 		}
 	}

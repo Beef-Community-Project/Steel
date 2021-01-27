@@ -6,11 +6,9 @@ namespace SteelEngine.ECS.Systems
 {
 	public class Render3DSystem : BaseSystem
 	{
-		public this(Application app) : base(app) {}
-
 		protected override void RegisterComponentTypes()
 		{
-			_registeredTypes = new Type[]{ typeof(Drawable3dComponent), typeof(TransformComponent) };
+			_registeredTypes = new Type[]( typeof(Drawable3dComponent), typeof(TransformComponent) );
 		}
 	}
 }

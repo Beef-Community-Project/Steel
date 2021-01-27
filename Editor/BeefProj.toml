@@ -1,6 +1,10 @@
 FileVersion = 1
-Dependencies = {corlib = "*", glfw-beef = "*", SteelEngine = "*"}
+Dependencies = {corlib = "*", SteelEngine = "*", BeefExtensionsLib = "*", ImGuiImplGlfw = "*", ImGuiImplOpenGL3 = "*", ImGui = "*", MsgPackBf = "*", JSON_Beef = "*"}
 
 [Project]
 Name = "SteelEditor"
 StartupObject = "SteelEditor.Program"
+
+[Configs.Debug.Win64]
+BeefLibType = "DynamicDebug"
+DebugWorkingDirectory = "$(ProjectDir)\\.."

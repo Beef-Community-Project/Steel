@@ -3,6 +3,7 @@ using glfw_beef;
 
 using SteelEngine.Events;
 using SteelEngine.GL;
+using SteelEngine;
 
 namespace SteelEngine.Window
 {
@@ -54,8 +55,8 @@ namespace SteelEngine.Window
 				Log.Fatal("Could not initialize GLFW");
 			}
 
-			Glfw.WindowHint(GlfwWindow.Hint.ContextVersionMajor, 3);
-			Glfw.WindowHint(GlfwWindow.Hint.ContextVersionMinor, 3);
+			Glfw.WindowHint(GlfwWindow.Hint.ContextVersionMajor, 4);
+			Glfw.WindowHint(GlfwWindow.Hint.ContextVersionMinor, 6);
 			Glfw.WindowHint(GlfwWindow.Hint.OpenGlProfile, .CoreProfile);
 			Glfw.WindowHint(GlfwWindow.Hint.OpenGlForwardCompat, Glfw.TRUE);
 

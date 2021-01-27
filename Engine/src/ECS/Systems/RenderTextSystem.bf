@@ -6,11 +6,9 @@ namespace SteelEngine.ECS.Systems
 {
 	public class RenderTextSystem : BaseSystem
 	{
-		public this(Application app) : base(app) {}
-
 		protected override void RegisterComponentTypes()
 		{
-			_registeredTypes = new Type[]{ typeof(TextComponent), typeof(TransformComponent) };
+			_registeredTypes = new Type[]( typeof(TextComponent), typeof(TransformComponent) );
 		}
 	}
 }

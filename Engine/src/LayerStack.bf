@@ -5,43 +5,53 @@ namespace SteelEngine
 {
 	public class LayerStack : IEnumerable<Layer>
 	{
-		public bool AutoDeleteLayers;
-
 		private List<Layer> _layers = new .();
 		private int _layerInsert = 0;
 
-		public this(bool autoDeleteLayers = true)
-		{
-			AutoDeleteLayers = autoDeleteLayers;
-		}
-
 		public ~this()
 		{
-			if (AutoDeleteLayers)
-				ClearAndDeleteItems(_layers);
+			Clear();
 			delete _layers;
+		}
+
+		public void PushLayer<T>() where T : Layer
+		{
+			var layer = new T();
+			layer.DeleteOnDetach = true;
+			_layers.Insert(_layerInsert++, layer);
+			layer.[Friend]OnAttach();
+		}
+
+		public void PushOverlay<T>() where T : Layer
+		{
+			var overlay = new T();
+			overlay.DeleteOnDetach = true;
+			_layers.Add(overlay);
+			overlay.[Friend]OnAttach();
 		}
 
 		public void PushLayer(Layer layer)
 		{
 			_layers.Insert(_layerInsert++, layer);
+			layer.[Friend]OnAttach();
 		}
 
 		public void PushOverlay(Layer overlay)
 		{
 			_layers.Add(overlay);
+			overlay.[Friend]OnAttach();
 		}
 
 		public void PopLayer()
 		{
 			_layerInsert--;
-			_layers.RemoveAt(_layerInsert);
+			_layers.GetAndRemove(_layers[_layerInsert]).Get().[Friend]OnDetach();
 		}
 
 		public void PopOverlay()
 		{
 			if (_layers.Count > _layerInsert)
-				_layers.PopBack();
+				_layers.PopBack().[Friend]OnDetach();
 		}
 
 		public void RemoveLayer(StringView debugName)
@@ -50,7 +60,7 @@ namespace SteelEngine
 			{
 				if (_layers[i].[Friend]_debugName == debugName)
 				{
-					_layers.RemoveAt(i);
+					RemoveAt(i);
 					_layerInsert--;
 					break;
 				}
@@ -63,7 +73,7 @@ namespace SteelEngine
 			{
 				if (_layers[i].[Friend]_debugName == debugName)
 				{
-					_layers.RemoveAt(i);
+					RemoveAt(i);
 					break;
 				}
 			}
@@ -75,7 +85,8 @@ namespace SteelEngine
 			{
 				if (typeof(T) == _layers[i].GetType())
 				{
-					_layers.RemoveAt(i);
+					RemoveAt(i);
+					_layerInsert--;
 					return;
 				}
 			}
@@ -87,34 +98,24 @@ namespace SteelEngine
 			{
 				if (typeof(T) == _layers[i].GetType())
 				{
-					_layers.RemoveAt(i);
+					RemoveAt(i);
 					break;
 				}
 			}
 		}
-		
-		public void RemoveLayer(Layer layer)
+
+		private void RemoveAt(int index)
 		{
-			for (int i = 0; i < _layerInsert; i++)
-			{
-				if (_layers[i] == layer)
-				{
-					_layers.RemoveAt(i);
-					return;
-				}
-			}
+			var layer = _layers.GetAndRemove(_layers[index]).Get();
+			layer.[Friend]OnDetach();
+			if (layer.DeleteOnDetach)
+				delete layer;
 		}
 
-		public void RemoveOverlay(Layer layer)
+		public void Clear()
 		{
-			for (int i = _layerInsert; i < _layers.Count; i++)
-			{
-				if (_layers[i] == layer)
-				{
-					_layers.RemoveAt(i);
-					return;
-				}
-			}
+			for (int i = _layers.Count - 1; i >= 0; i--)
+				RemoveAt(i);
 		}
 
 		public List<Layer>.Enumerator GetEnumerator()
